@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package>
+	<metadata>
+		<id>AlphaOmega.SAL.Plugin.ConfigurationHttp</id>
+		<version>0.0.0.0</version>
+		<authors>DKorablin</authors>
+		<license type="expression">Apache-1.0</license>
+		<readme>docs\README.md</readme>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<projectUrl>https://dkorablin.ru/project/Default.aspx?File=118</projectUrl>
+		<repository type="git" url="https://github.com/DKorablin/Plugin.ConfigurationHttp" />
+		<description>Configuration plugin for SAL host convenient for service hosts applications</description>
+		<releaseNotes></releaseNotes>
+		<copyright>Danila Korablin</copyright>
+		<tags>File</tags>
+		<dependencies>
+			<group targetFramework="net20">
+				<dependency id="SAL.Flatbed" version="1.2.9" />
+				<dependency id="AlphaOmega.MQ.WebPush" version="1.0.0.0" />
+			</group>
+		</dependencies>
+	</metadata>
+	<files>
+		<file src="readme.md" target="docs" />
+		<!--file src="bin\net20\Plugin.HttpClient.xml" target="xml" /-->
+		<file src="bin\net20\Plugin.ConfigurationHttp.dll" target="lib\net20" />
+	</files>
+</package>

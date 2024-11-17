@@ -1,0 +1,196 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta charset="utf-8" />
+	<title>SAL - Loaded plugins</title>
+	<script type="text/javascript" src="Utils.js"></script>
+	<script type="text/javascript" src="BllApi.js"></script>
+	<link rel="stylesheet" type="text/css" href="a.css" />
+</head>
+<body>
+	<dl class="container">
+		<dt>
+			<select id="Instances" style="display:none" onchange="OnInstanceSelected()"></select>
+			<input id="Search" type="text" placeholder="Search" onkeydown="OnSearchSubmitted(this)"/>
+			<select id="Plugins" name="Plugins" size="20" onchange="OnPluginSelected()"></select>
+
+			<div id="cInfo" />
+		</dt>
+		<dd>
+			<div id="cSettings" class="settings">
+				<script type="text/javascript" src="PushSubscriber.js"></script>
+				<script type="text/javascript">
+					var _pushSubscriber = new PushSubscriber("PushWorker.js", "/Push/Subscribe", "/Push/Unsubscribe", false);
+				</script>
+				<input type="button" value="Subscribe" onclick="_pushSubscriber.Subscribe(); return false;" /> <input type="button" value="Unsubscribe" onclick="_pushSubscriber.Unsubscribe(); return false;" />
+			</div>
+		</dd>
+	</dl>
+
+	<script type="text/javascript">
+		_api = new BllApi(null,null);
+		_api.GetInstances(OnInstancesResponse);
+
+		function OnInstancesResponse(payload) {
+			var ctrl = document.getElementById("Instances");
+			ctrl.options.length = 0;
+			ctrl.style.display = "none";
+
+			if (payload == null || payload.length==0)
+				OnInstanceSelected();
+			else if (payload.Message)
+				alert(payload.Message);
+			else {
+				if (payload.length > 0) {
+					ctrl.style.display = "";
+					var option = document.createElement("OPTION");
+					ctrl.appendChild(option);
+					for (var i = 0; i < payload.length; i++) {
+						var option = document.createElement("OPTION");
+						option.value = payload[i];
+						option.innerHTML = payload[i];
+						ctrl.appendChild(option);
+					}
+				}
+
+				OnInstanceSelected();
+			}
+		}
+
+		function OnSearchSubmitted(event) {
+			if (event.key === 'Enter') {
+				event.preventDefault();
+				OnInstanceSelected();
+			}
+		}
+
+		function OnInstanceSelected() {
+			var ctrl = document.getElementById("Instances");
+			var instance = ctrl.value;
+
+			ctrl = document.getElementById("Search");
+			var searchText = ctrl.value;
+			_api.GetPlugins(instance, searchText, OnPluginsResponse);
+		}
+
+		function OnPluginsResponse(payload) {
+			var ctrl = document.getElementById("Plugins");
+			ctrl.options.length = 0;
+
+			if (payload == null)
+				return;
+			if (payload.Message)
+				alert(payload.Message);
+			else {
+				for (var loop = 0; loop < payload.length; loop++) {
+					var option = document.createElement("OPTION");
+					option.value = payload[loop].ID;
+					option.innerHTML = payload[loop].Name;
+					option.data = payload[loop];
+					ctrl.appendChild(option);
+				}
+			}
+		}
+
+		function OnPluginSelected() {
+			var ctrl = document.getElementById("Plugins");
+			var option = ctrl.options[ctrl.selectedIndex];
+
+			_api.GetPluginParams(option.data.InstanceId, option.data.ID, OnPluginParamsLoaded, OnPropertyChanged);
+
+			document.getElementById("cInfo").innerHTML = option == null
+				? ""
+				: Utils.FormatTemplate("tplInfo", option.data);
+		}
+
+		function OnPropertyChanged() {
+			var data = event.target.data;
+			var pluginId = data.PluginId;
+			var name = data.Name;
+			var value = event.target.value.replace(/\n/g, "\r\n");
+
+			_api.SetPluginParams(data.InstanceId, data.PluginId, data.Name, event.target.value, OnPropertySaved);
+		}
+
+		function OnPropertySaved(payload) {
+			if (payload && payload.Message)
+				alert(payload.Message);
+			else
+				OnPluginSelected();
+		}
+
+		function OnPluginParamsLoaded(payload) {
+			var container = document.getElementById("cSettings");
+			container.innerHTML = "";
+			if (payload == null)
+				return;
+
+			if (payload.Message)
+				alert(payload.Message);
+			else {
+				for (var i = 0; i < payload.length; i++) {
+					var elCategory = document.createElement("DIV");
+					elCategory.innerHTML = payload[i].Category;
+					elCategory.className = "D";
+					elCategory.onclick = function () { ToggleCategory(this); };
+					container.appendChild(elCategory);
+
+					var dl = document.createElement("DL");
+					for (var k = 0; k < payload[i].Items.length; k++) {
+						var property=payload[i].Items[k];
+						var dt = document.createElement("DT");
+
+						dt.setAttribute("title",
+							property.Description != null
+								? property.Description
+								: property.DisplayName != null
+								? property.DisplayName
+								: property.Name);
+						dt.innerHTML = property.DisplayName ? property.DisplayName : property.Name;
+						if (property.IsReadOnly)
+							dt.className = "R";
+
+						var dd = document.createElement("DD");
+						dd.appendChild(property.ValueCtrl);
+						dl.appendChild(dt);
+						dl.appendChild(dd);
+					}
+					container.appendChild(dl);
+				}
+			}
+		}
+
+		function ToggleCategory(ctrlHead) {
+			var settings = ctrlHead.nextSibling;
+			while (settings.tagName != "DL")
+				settings = settings.nextSibling;
+
+			if (ctrlHead.className == "D") {
+				ctrlHead.className = "U";
+				settings.style.display = "none";
+			} else {
+				ctrlHead.className = "D";
+				settings.style.display = "";
+			}
+		}
+	</script>
+	<script id="tplInfo" type="text/template">
+		<fieldset>
+			<legend>Information</legend>
+			<dl class="info">
+				<dt>Name:</dt>
+				<dd><input type="text" value="<#=Name#>" title="<#=Name#>" tabindex="-1" readonly /></dd>
+				<dt>Version:</dt>
+				<dd><input type="text" value="<#=Version.Major#>.<#=Version.Minor#>.<#=Version.Build#>.<#=Version.Revision#>" title="<#=Version.Major#>.<#=Version.Minor#>.<#=Version.Build#>.<#=Version.Revision#>" tabindex="-1" readonly /></dd>
+				<dt>Company:</dt>
+				<dd><input type="text" value="<#=Company#>" title="<#=Company#>" tabindex="-1" readonly /></dd>
+				<dt>Source:</dt>
+				<dd><input type="text" value="<#=Source#>" title="<#=Source#>" tabindex="-1" readonly /></dd>
+				<dt>Description:</dt>
+				<dd><textarea title="<#=Description#>" tabindex="-1" readonly><#=Description#></textarea></dd>
+			</dl>
+		</fieldset>
+	</script>
+</body>
+</html>

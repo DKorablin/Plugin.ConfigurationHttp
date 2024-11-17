@@ -1,0 +1,35 @@
+﻿body > dl {}
+body > dl > dt {float:left}
+body > dl > dt > select,
+body > dl > dt > input[type=text] {width:190pt;display:block}
+body > dl > dt fieldset {padding:0 4pt;width:180pt;margin-left:0}
+body > dl > dd {margin-left:200pt}
+
+dl.info {margin:3pt 0}
+dl.info dt {font-weight:bold}
+dl.info dd {margin-left:10pt}
+dl.info dd>input,
+dl.info dd>input:focus {border:none;width:100%}
+dl.info dd>textarea {width:100%;min-width:100%;border:0;overflow:hidden;resize:none}
+
+div.settings > div {font-weight:bold;cursor:pointer;background-color:#A0A0A0}
+div.settings > div.D::before {content:"↓";letter-spacing:5px}
+div.settings > div.U::before {content:"↑";letter-spacing:5px}
+
+div.settings > dl {border-left:7pt solid #A0A0A0;margin:0}
+div.settings > dl > dt {float:left;max-width:150pt;overflow:hidden;white-space:nowrap;padding-left:5pt}
+div.settings > dl > dt.R {color:#A0A0A0}
+div.settings > dl > dd {margin-left:170pt}
+
+div.settings > dl > dd > input,
+div.settings > dl > dd > select,
+div.settings > dl > dd > textarea {width:100%;min-width:100%;box-sizing:border-box}
+div.settings > dl > dd > textarea {resize:vertical;min-height:16pt}
+
+div.settings > dl > dd > pre {margin:0}
+
+div.settings > dl > dd > input[readonly=readonly],
+div.settings > dl > dd > select[readonly=readonly],
+div.settings > dl > dd > textarea[readonly=readonly] {color:#A0A0A0}
+
+div.settings > dl > dd > .C {font-weight:bold}

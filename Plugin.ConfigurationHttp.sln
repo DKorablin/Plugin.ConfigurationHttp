@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34511.84
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Plugin.ConfigurationHttp35", "Plugin.ConfigurationHttp\Plugin.ConfigurationHttp35.csproj", "{C5AC78CB-B4F6-4431-A6BC-40B6B97E5B80}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AF61EAE3-162F-4C3F-A742-2D7A790F6ACB}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.github\dependabot.yml = .github\dependabot.yml
+		Plugin.ConfigurationHttp.dll.nuspec = Plugin.ConfigurationHttp.dll.nuspec
+		README.md = README.md
+		.github\workflows\release.yml = .github\workflows\release.yml
+		.github\workflows\test.yml = .github\workflows\test.yml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C5AC78CB-B4F6-4431-A6BC-40B6B97E5B80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5AC78CB-B4F6-4431-A6BC-40B6B97E5B80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5AC78CB-B4F6-4431-A6BC-40B6B97E5B80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5AC78CB-B4F6-4431-A6BC-40B6B97E5B80}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {21EB8EB3-E97C-448C-8902-FAA9FF6F7232}
+	EndGlobalSection
+EndGlobal
