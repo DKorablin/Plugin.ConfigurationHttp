@@ -12,7 +12,7 @@
 		<description>Configuration plugin for SAL host convenient for service hosts applications</description>
 		<releaseNotes></releaseNotes>
 		<copyright>Danila Korablin</copyright>
-		<tags>File</tags>
+		<tags>SAL,Plugin</tags>
 		<dependencies>
 			<group targetFramework="net20">
 				<dependency id="SAL.Flatbed" version="1.2.9" />
@@ -22,7 +22,7 @@
 	</metadata>
 	<files>
 		<file src="readme.md" target="docs" />
-		<!--file src="bin\net20\Plugin.HttpClient.xml" target="xml" /-->
+		<!--file src="bin\net20\Plugin.ConfigurationHttp.xml" target="xml" /-->
 		<file src="bin\net20\Plugin.ConfigurationHttp.dll" target="lib\net20" />
 	</files>
 </package>
