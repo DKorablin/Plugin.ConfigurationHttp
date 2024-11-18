@@ -30,7 +30,6 @@ jobs:
 
   files_exists:
     name: Checking project existence
-    needs: [version]
     runs-on: ubuntu-latest
     outputs:
       net_framework_project_exists: ${{steps.net_framework.outputs.files_exists}}
