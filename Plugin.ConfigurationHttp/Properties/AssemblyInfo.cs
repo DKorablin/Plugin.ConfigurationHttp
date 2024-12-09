@@ -18,7 +18,7 @@ using System.Runtime.InteropServices;
 #endif
 [assembly: AssemblyCompany("Danila Korablin")]
 [assembly: AssemblyProduct("Plugin.ConfigurationHttp")]
-[assembly: AssemblyCopyright("Copyright © Danila Korablin 2019-2021")]
+[assembly: AssemblyCopyright("Copyright © Danila Korablin 2019-2024")]
 
 #endif
 /*

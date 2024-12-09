@@ -8,9 +8,13 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AF61EAE3-162F-4C3F-A742-2D7A790F6ACB}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
-		.github\dependabot.yml = .github\dependabot.yml
 		Plugin.ConfigurationHttp.dll.nuspec = Plugin.ConfigurationHttp.dll.nuspec
 		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{A6C2B154-F554-4EF7-8C9C-46C38BDDDD53}"
+	ProjectSection(SolutionItems) = preProject
+		.github\dependabot.yml = .github\dependabot.yml
 		.github\workflows\release.yml = .github\workflows\release.yml
 		.github\workflows\test.yml = .github\workflows\test.yml
 	EndProjectSection
@@ -28,6 +32,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A6C2B154-F554-4EF7-8C9C-46C38BDDDD53} = {AF61EAE3-162F-4C3F-A742-2D7A790F6ACB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {21EB8EB3-E97C-448C-8902-FAA9FF6F7232}
