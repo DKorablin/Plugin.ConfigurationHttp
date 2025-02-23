@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: ComVisible(false)]
 [assembly: Guid("d10da6bc-77fd-4ada-8b3f-b850023e59ae")]
 [assembly: System.CLSCompliant(true)]
 
@@ -9,15 +8,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyMetadata("ProjectUrl", "https://dkorablin.ru/project/Default.aspx?File=118")]
 #else
 
-[assembly: AssemblyTitle("Plugin.ConfigurationHttp")]
 [assembly: AssemblyDescription("Web UI for Plugins configuration")]
-#if DEBUG
-[assembly: AssemblyConfiguration("Debug")]
-#else
-[assembly: AssemblyConfiguration("Release")]
-#endif
-[assembly: AssemblyCompany("Danila Korablin")]
-[assembly: AssemblyProduct("Plugin.ConfigurationHttp")]
 [assembly: AssemblyCopyright("Copyright © Danila Korablin 2019-2024")]
 
 #endif
