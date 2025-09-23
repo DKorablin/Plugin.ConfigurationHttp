@@ -1,14 +1,14 @@
 name: Test, Buid
 
-# I have to reconfigure this job but I could check it work only when dependabot triggers...
-# https://github.com/dependabot/dependabot-core/issues/3253#issuecomment-852541544
-
 on:
   pull_request:
     branches: [ "master" ]
+  workflow_dispatch:
 
 env:
   SolutionName: ${{github.event.repository.name}}
+  NuGetPackageSourceCredentials_github_DKorablin: Username=${{github.actor}};Password=${{secrets.GITHUB_TOKEN}}
+  DotNetVersion: 8.0.x
 
 jobs:
   test_net_windows:
@@ -22,7 +22,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: ${{env.DotNetVersion}}
     - name: Restoring dependencies
       run: dotnet restore ${{env.SolutionName}}.sln
     - name: Testing .NET
@@ -82,7 +82,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: ${{env.DotNetVersion}}
     - name: Restoring dependencies
       run: dotnet restore ${{env.SolutionName}}.sln
     - name: Building .NET
