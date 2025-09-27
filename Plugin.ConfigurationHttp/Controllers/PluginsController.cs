@@ -67,7 +67,7 @@ namespace Plugin.ConfigurationHttp
 			{
 				Object objValue = TypeDescriptor.GetConverter(prop.PropertyType).ConvertFromString(value);
 				prop.SetValue(settings.Settings, objValue, null);
-				objValue = prop.GetValue(settings.Settings, null);//Получаю значение обратно, ибо пропертя может не измениться
+				objValue = prop.GetValue(settings.Settings, null);//I get the value back because the property may not change.
 				this._host.Plugins.Settings(plugin.Instance).SaveAssemblyParameter(prop.Name, objValue);
 				return String.Empty;
 			} catch(TargetInvocationException exc)

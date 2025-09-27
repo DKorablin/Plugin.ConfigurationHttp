@@ -14,7 +14,7 @@ BllApi.prototype = {
 		SetRequestLog: function (request) {
 			this.RequestLogId = document.getElementById(this.RequestLogId);
 			if (this.RequestLogId) {
-				this.SetRequestLog = function (request) { this.RequestLogId.value = request; };
+				this.SetRequestLog = (request) => this.RequestLogId.value = request;
 				this.SetRequestLog(request);
 			}
 		},
@@ -22,7 +22,7 @@ BllApi.prototype = {
 		SetResponseLog: function (response) {
 			this.ResponseLogId = document.getElementById(this.ResponseLogId);
 			if (this.ResponseLogId) {
-				this.SetResponseLog = function (response) { this.ResponseLogId.value = response; };
+				this.SetResponseLog = (response) => this.ResponseLogId.value = response;
 				this.SetResponseLog(response);
 			}
 		},
@@ -112,10 +112,9 @@ BllApi.prototype = {
 					result = Utils.CreateElement("INPUT", ["type", "number"], ["min", "-9223372036854775808"], ["max", "9223372036854775807"]);
 					break;
 				default:
-					if (item.Editor && item.Editor.indexOf("System.ComponentModel.Design.MultilineStringEditor")==0) {
-						result = document.createElement("TEXTAREA");
-					} else
-						result = Utils.CreateElement("INPUT", ["type", item.IsPassword ? "password" : "text"]);
+					result = item.Editors && Array.isArray(item.Editors) && item.Editors.some(editor => editor.indexOf("System.ComponentModel.Design.MultilineStringEditor")-1)
+						? document.createElement("TEXTAREA")
+						: Utils.CreateElement("INPUT", ["type", item.IsPassword ? "password" : "text"]);
 					break;
 			}
 
@@ -127,12 +126,12 @@ BllApi.prototype = {
 			result.data = item;
 
 			var _this = this;
-			result.onkeydown = function () { _this.OnPropertyCancel(); }
-			result.onblur = function () { _this.OnPropertyBlur(evtPropertyChanged); }
+			result.onkeydown = (e) => _this.OnPropertyCancel(e);
+			result.onblur = (e) => _this.OnPropertyBlur(evtPropertyChanged, e);
 			return result;
 		},
 
-		OnPropertyCancel:function(){
+		OnPropertyCancel:function(event){
 			if (event.keyCode != 27) return;
 			this.SetPropertyValue(event.target, event.target.data);
 		},
@@ -152,10 +151,7 @@ BllApi.prototype = {
 					ctrl.value = item.Value;
 					break;
 				default:
-					if (item.Editor && item.Editor.indexOf("System.ComponentModel.Design.MultilineStringEditor")==0)
-						ctrl.value = item.Value;
-					else
-						ctrl.value = item.Value;
+					ctrl.value = item.Value;
 					break;
 			}
 
@@ -164,7 +160,7 @@ BllApi.prototype = {
 				: "";
 		},
 
-		OnPropertyBlur: function (callback) {
+		OnPropertyBlur: function (callback, event) {
 			var e = event.target;
 			var value = e.value;
 			if (e.data.Value == null && value == "null")
@@ -183,7 +179,7 @@ BllApi.prototype = {
 		var _this = this;
 
 		var ajax = { Method: "GET", Url: "/Instance", };
-		var request = Utils.Async.LoadAsync(ajax, function (data) { _this.i.OnRawResponseI(data, callback); });
+		var request = Utils.Async.LoadAsync(ajax, (data) => _this.i.OnRawResponseI(data, callback));
 	},
 
 	GetPlugins: function (instanceId, searchText, callback) {
@@ -195,7 +191,7 @@ BllApi.prototype = {
 		var ajax = instanceId
 			? { Method: "GET", Url: "/Plugins/?searchText="+searchText+"&instanceId=" + instanceId, }
 			: { Method: "GET", Url: "/Plugins/?searchText="+searchText, };
-		var request = Utils.Async.LoadAsync(ajax, function (data) { _this.i.OnGetPluginsI(instanceId, data, callback); });
+		var request = Utils.Async.LoadAsync(ajax, (data) => _this.i.OnGetPluginsI(instanceId, data, callback));
 
 		this.i.SetRequestLog(request);
 	},
@@ -206,7 +202,7 @@ BllApi.prototype = {
 		var ajax = instanceId
 			? { Method: "GET", Url: "/PluginParams/?instanceId=" + instanceId + "&pluginId=" + pluginId, }
 			: { Method: "GET", Url: "/PluginParams/?pluginId=" + pluginId, };
-		var request = Utils.Async.LoadAsync(ajax, function (data) { _this.i.OnGetSettingsI(instanceId, pluginId, data, callback, evtPropertyChanged); });
+		var request = Utils.Async.LoadAsync(ajax, (data) => _this.i.OnGetSettingsI(instanceId, pluginId, data, callback, evtPropertyChanged));
 
 		this.i.SetRequestLog(request);
 	},
@@ -217,7 +213,7 @@ BllApi.prototype = {
 		var ajax = instanceId
 			? { Method: "POST", Url: "/SetPluginParams/?instanceId=" + instanceId + "&pluginId=" + pluginId + "&paramName=" + paramName, Params: "value=" + value, }
 			: { Method: "POST", Url: "/SetPluginParams/?pluginId=" + pluginId + "&paramName=" + paramName, Params: "value=" + value, };
-		var request = Utils.Async.LoadAsync(ajax, function (data) { _this.i.OnRawResponseI(data, callback); });
+		var request = Utils.Async.LoadAsync(ajax, (data) => _this.i.OnRawResponseI(data, callback));
 
 		this.i.SetRequestLog(request);
 	}

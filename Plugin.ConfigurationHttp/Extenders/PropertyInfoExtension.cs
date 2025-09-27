@@ -12,6 +12,15 @@ namespace Plugin.ConfigurationHttp
 			return items.Length == 0 ? default : (T)items[0];
 		}
 
+		public static T[] GetCustomAttributes<T>(this PropertyInfo item) where T : Attribute
+		{
+			Object[] items = item.GetCustomAttributes(typeof(T), false);
+			T[] result = new T[items.Length];
+			for(Int32 loop = 0; loop < items.Length; loop++)
+				result[loop] = (T)items[loop];
+			return result;
+		}
+
 		public static String GetCategory(this PropertyInfo item)
 		{
 			CategoryAttribute category = item.GetCustomAttribute<CategoryAttribute>();

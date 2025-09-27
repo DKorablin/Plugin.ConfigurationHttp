@@ -23,7 +23,7 @@ namespace Plugin.ConfigurationHttp
 
 		/// <summary>Данные для отправки WebPush сообщений</summary>
 		[Serializable]
-		public class PushSettngs
+		public class PushSettings
 		{
 			private Uri _endpoint;
 			private Byte[] _p256dh;
@@ -90,10 +90,10 @@ namespace Plugin.ConfigurationHttp
 
 			internal Byte[] AuthI => this._auth;
 
-			public PushSettngs()
+			public PushSettings()
 			{ }
 
-			public PushSettngs(String endpoint,String p256dh, String auth)
+			public PushSettings(String endpoint,String p256dh, String auth)
 			{
 				this.Endpoint = endpoint;
 				this.P256dh = p256dh;
@@ -110,13 +110,10 @@ namespace Plugin.ConfigurationHttp
 
 			public override Boolean Equals(Object obj)
 			{
-				PushSettngs push = obj as PushSettngs;
-				if(push == null)
+				if(!(obj is PushSettings push))
 					return false;
-				if(push.IsEmpty() == this.IsEmpty())
-					return true;
 
-				return this.EndpointI == push.EndpointI && this.Auth == push.Auth && this.P256dh == push.P256dh;
+				return push.IsEmpty() == this.IsEmpty() || this.EndpointI == push.EndpointI && this.Auth == push.Auth && this.P256dh == push.P256dh;
 			}
 
 			public override Int32 GetHashCode()
@@ -152,7 +149,7 @@ namespace Plugin.ConfigurationHttp
 			set
 			{
 				String _value = String.IsNullOrEmpty(value) ? Constants.HostUrl : value;
-				this.SetField(ref this._hostUrl, _value, nameof(HostUrl));
+				this.SetField(ref this._hostUrl, _value, nameof(this.HostUrl));
 			}
 		}
 
@@ -162,9 +159,7 @@ namespace Plugin.ConfigurationHttp
 		public Int32 ListenersCount
 		{
 			get => this._listenersCount;
-			set => this.SetField(ref this._listenersCount,
-					value > 0 ? value : this._listenersCount,
-					nameof(ListenersCount));
+			set => this.SetField(ref this._listenersCount, value > 0 ? value : this._listenersCount, nameof(this.ListenersCount));
 		}
 
 		[Category("Server")]
@@ -173,7 +168,7 @@ namespace Plugin.ConfigurationHttp
 		public Boolean IgnoreWriteExceptions
 		{
 			get => this._ignoreWriteExceptions;
-			set => this.SetField(ref this._ignoreWriteExceptions, value, nameof(IgnoreWriteExceptions));
+			set => this.SetField(ref this._ignoreWriteExceptions, value, nameof(this.IgnoreWriteExceptions));
 		}
 
 		[Category("Authentication")]
@@ -182,7 +177,7 @@ namespace Plugin.ConfigurationHttp
 		public Boolean UnsafeConnectionNtlmAuthentication
 		{
 			get => this._unsafeConnectionNtlmAuthentication;
-			set => this.SetField(ref this._unsafeConnectionNtlmAuthentication, value, nameof(UnsafeConnectionNtlmAuthentication));
+			set => this.SetField(ref this._unsafeConnectionNtlmAuthentication, value, nameof(this.UnsafeConnectionNtlmAuthentication));
 		}
 
 		[Category("Authentication")]
@@ -190,7 +185,7 @@ namespace Plugin.ConfigurationHttp
 		public String Realm
 		{
 			get => this._realm;
-			set => this.SetField(ref this._realm, value, nameof(Realm));
+			set => this.SetField(ref this._realm, value, nameof(this.Realm));
 		}
 
 		[Category("Authentication")]
@@ -202,7 +197,7 @@ namespace Plugin.ConfigurationHttp
 			get => this._authenticationSchemes;
 			set => this.SetField(ref this._authenticationSchemes,
 					value < 0 ? System.Net.AuthenticationSchemes.Anonymous : value,
-					nameof(AuthenticationSchemes));
+					nameof(this.AuthenticationSchemes));
 		}
 
 		[Category("Authentication")]
@@ -210,28 +205,24 @@ namespace Plugin.ConfigurationHttp
 		public String[] Users
 		{
 			get => this._users;
-			set => this.SetField(ref this._users,
-					value == null || value.Length == 0 ? null : value,
-					nameof(Users));
+			set => this.SetField(ref this._users, value == null || value.Length == 0 ? null : value, nameof(this.Users));
 		}
 
 		[Category("Notifications")]
 		[DisplayName("Subscriber")]
 		[Description("Data for sending HTTP PUSH notifications (RFC-8030)")]
 		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public PushSettngs WebPush { get; private set; }
+		public PushSettings WebPush { get; private set; }
 
 		[Category("Notifications")]
 		[DisplayName("Publish Events")]
-		[Description("What evens to send")]
+		[Description("Which type of events to send")]
 		[DefaultValue(TraceEventType.Error)]
 		[Editor(typeof(ColumnEditor<TraceEventType>), typeof(UITypeEditor))]
 		public TraceEventType WebPushEventTypes
 		{
 			get => this._webPushEventTypes;
-			set => this.SetField(ref this._webPushEventTypes,
-					value == 0 ? TraceEventType.Error : value,
-					nameof(WebPushEventTypes));
+			set => this.SetField(ref this._webPushEventTypes, value == 0 ? TraceEventType.Error : value, nameof(this.WebPushEventTypes));
 		}
 
 		[Browsable(false)]
@@ -240,9 +231,9 @@ namespace Plugin.ConfigurationHttp
 			get => this.WebPush.IsEmpty() ? null : Serializer.JavaScriptSerialize(this.WebPush);
 			set
 			{
-				PushSettngs newValue = value == null
-					? new PushSettngs()
-					: Serializer.JavaScriptDeserialize<PushSettngs>(value);
+				PushSettings newValue = value == null
+					? new PushSettings()
+					: Serializer.JavaScriptDeserialize<PushSettings>(value);
 
 				if(newValue == this.WebPush)
 					return;
@@ -254,7 +245,7 @@ namespace Plugin.ConfigurationHttp
 
 		[Category("Notifications")]
 		[DisplayName("Time to Live")]
-		[Description("Time to live recieved message in browser before it will be destroyed")]
+		[Description("Time to live received message in browser before it will be destroyed")]
 		[DefaultValue(Constants.WebPushTtl)]
 		public Int32 WebPushTtl
 		{
@@ -262,7 +253,7 @@ namespace Plugin.ConfigurationHttp
 			set => this.SetField(ref this._webPushTtl, value < 0 || value > 10000 ? WebPushTtl : value, nameof(WebPushTtl));
 		}
 
-		/// <summary>Хост адрес текущей машины</summary>
+		/// <summary>Host address of the current machine</summary>
 		private static IPAddress HostAddress
 		{
 			get
@@ -270,7 +261,7 @@ namespace Plugin.ConfigurationHttp
 				if(_HostAddress == null)
 				{
 					IPHostEntry ip = Dns.GetHostEntry(Dns.GetHostName());
-					_HostAddress = Array.Find(ip.AddressList, delegate(IPAddress addr) { return addr.AddressFamily == AddressFamily.InterNetwork; });
+					_HostAddress = Array.Find(ip.AddressList, addr => addr.AddressFamily == AddressFamily.InterNetwork);
 				}
 				return _HostAddress;
 			}
@@ -279,11 +270,11 @@ namespace Plugin.ConfigurationHttp
 		internal PluginSettings(IHost host)
 		{
 			this._host = host;
-			this.WebPush = new PushSettngs();
+			this.WebPush = new PushSettings();
 		}
 
-		/// <summary>Получить ност с кастомным форматированием</summary>
-		/// <returns>Хост с дополнительным форматированием</returns>
+		/// <summary>Get a note with custom formatting</summary>
+		/// <returns>Host with additional formatting</returns>
 		internal String GetHostUrl()
 		{
 			String result = this.HostUrl;
@@ -293,25 +284,25 @@ namespace Plugin.ConfigurationHttp
 				: result;
 		}
 
-		/// <summary>Проверить подлинность пользователя по внутреннему списку</summary>
-		/// <param name="principal">Проверяемый пользователь</param>
-		/// <returns>Проверка подлинности прошла успешно</returns>
+		/// <summary>Verify user authenticity against an internal list</summary>
+		/// <param name="principal">User being verified</param>
+		/// <returns>Authentication successful</returns>
 		internal Boolean Authenticate(IPrincipal principal)
 		{
 			if(this.Users == null)
-				return true;//Игнорируем пользователей, ибо они не заданы
+				return true;//We ignore users because they are not specified
 
 			if((this.AuthenticationSchemes | System.Net.AuthenticationSchemes.Anonymous) == System.Net.AuthenticationSchemes.Anonymous
 				|| (this.AuthenticationSchemes | System.Net.AuthenticationSchemes.None) == System.Net.AuthenticationSchemes.None)
-				return true;//Анонимная схема авторизации, игнорируем пользователей
+				return true;//Anonymous authentication scheme, ignoring users
 
 			if(principal == null || !principal.Identity.IsAuthenticated)
-				return false;//Не передан пользователь, однако по схеме одн должен быть
+				return false;//The user is not transferred, but according to the scheme one should be
 
-			return Array.Exists(this.Users, p => p == principal.Identity.Name);//Проверяем пользователей по внутреннему списку
+			return Array.Exists(this.Users, p => p == principal.Identity.Name);//We check users against an internal list
 		}
 
-		/// <summary>Получить наименование приложения для которого прописывается функция автозапуска</summary>
+		/// <summary>Get the name of the application for which the AutoStart function is registered</summary>
 		internal String GetApplicationName()
 		{
 			StringBuilder result = new StringBuilder();
@@ -321,9 +312,9 @@ namespace Plugin.ConfigurationHttp
 			return result.ToString();
 		}
 
-		/// <summary>Отправить HTTP PUSH сообщение пользователю</summary>
-		/// <param name="title">Заголовок отправляемого сообщения</param>
-		/// <param name="description">Описание отправляемого сообщения</param>
+		/// <summary>Send an HTTP PUSH message to a user</summary>
+		/// <param name="title">The title of the message being sent</param>
+		/// <param name="description">Description of the message being sent</param>
 		internal void SendPushMessage(String title, String description)
 		{
 			if(this.WebPush.IsEmpty())

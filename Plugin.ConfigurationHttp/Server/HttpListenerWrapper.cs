@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace Plugin.ConfigurationHttp
 {
-	/// <summary>Обёртка HttpListener'а с добавлением массива прослушивателей</summary>
+	/// <summary>HttpListener wrapper with added listener array.</summary>
 	internal class HttpListenerWrapper : IDisposable
 	{
 		private HttpListener _listener;
@@ -15,10 +15,10 @@ namespace Plugin.ConfigurationHttp
 		private readonly ManualResetEvent _stop, _ready;
 		private readonly Queue<HttpListenerContext> _queue;
 
-		/// <summary>Событие обработки запросов от клиентов</summary>
+		/// <summary>Client request processing event</summary>
 		public event Action<HttpListenerContext> ProcessRequest;
 
-		/// <summary>Сервер запущен</summary>
+		/// <summary>The state of the service.</summary>
 		public Boolean IsListening => this._listener != null && this._listener.IsListening;
 
 		public Boolean IgnoreWriteExceptions
@@ -56,11 +56,11 @@ namespace Plugin.ConfigurationHttp
 			this._listenerThread = new Thread(HandleRequests);
 		}
 
-		/// <summary>Запустить сервер</summary>
-		/// <param name="hostUrl">Url сервера</param>
-		/// <param name="listenersCount">Кол-во обработчиков запросов с клиентов</param>
-		/// <param name="ignoreWriteExceptions">Игнорирование исключений отправки ответов клиенту</param>
-		/// <param name="authenticationscheme">Используемая схема аутентификации клиента</param>
+		/// <summary>Start the HTTP(s) server</summary>
+		/// <param name="hostUrl">The host server url</param>
+		/// <param name="listenersCount">Number of client request handlers</param>
+		/// <param name="ignoreWriteExceptions">Ignoring exceptions when sending responses to the client</param>
+		/// <param name="authenticationscheme">The client authentication scheme used</param>
 		public void Start(String hostUrl, Int32 listenersCount, Boolean ignoreWriteExceptions, AuthenticationSchemes authenticationScheme)
 		{
 			if(this.ProcessRequest == null)
@@ -78,7 +78,7 @@ namespace Plugin.ConfigurationHttp
 			Thread[] workers = new Thread[listenersCount];
 			for(Int32 loop = 0; loop < workers.Length; loop++)
 			{
-				workers[loop] = new Thread(Worker);
+				workers[loop] = new Thread(this.Worker);
 				workers[loop].Start();
 			}
 			this._workers = workers;
@@ -86,7 +86,7 @@ namespace Plugin.ConfigurationHttp
 			this._listenerThread.Start();
 		}
 
-		/// <summary>Остановить сервер</summary>
+		/// <summary>Start the HTTP(s) server.</summary>
 		public void Stop()
 		{
 			this._stop.Set();

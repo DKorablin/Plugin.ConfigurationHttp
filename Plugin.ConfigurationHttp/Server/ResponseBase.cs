@@ -38,8 +38,8 @@ namespace Plugin.ConfigurationHttp
 		public ResponseBase()
 			=> this.IsMethodFound = false;
 
-		/// <summary>Определение Content-Type исходя из расширения файла</summary>
-		/// <param name="resourceName">Наименование файла с ресурсами</param>
+		/// <summary>Determining Content-Type from File Extension</summary>
+		/// <param name="resourceName">Name of the resource file</param>
 		/// <returns>Content-Type</returns>
 		private static String DetectContentType(String resourceName)
 		{

@@ -57,8 +57,8 @@ namespace Plugin.ConfigurationHttp.Ipc
 		private Boolean CheckServiceConfiguration<TService>()
 		{
 			/*
-			TODO: Чтобы корректно работало чтение из .config файла, необходимо создавать 2 разных контракта.
-			Первый для Web, а второй для Ipc. Разделение на интефейсы - не работает
+			TODO: To ensure that reading from the .config file works correctly, you need to create two different contracts.
+			The first one is for the web, and the second one is for IPC. Separating the interfaces doesn't work.
 			*/
 			if(this._serviceModelGroup == null)
 				return false;

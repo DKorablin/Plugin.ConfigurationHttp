@@ -7,9 +7,9 @@
 		<license type="expression">Apache-1.0</license>
 		<readme>docs\README.md</readme>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
-		<projectUrl>https://dkorablin.ru/project/Default.aspx?File=118</projectUrl>
+		<projectUrl>https://github.com/DKorablin/Plugin.ConfigurationHttp</projectUrl>
 		<repository type="git" url="https://github.com/DKorablin/Plugin.ConfigurationHttp" />
-		<description>Configuration plugin for SAL host convenient for service hosts applications</description>
+		<description>Configuration plugin using built in HTTP(s) server to configure service host applications on the runtime</description>
 		<releaseNotes></releaseNotes>
 		<copyright>Danila Korablin</copyright>
 		<tags>SAL,Plugin</tags>

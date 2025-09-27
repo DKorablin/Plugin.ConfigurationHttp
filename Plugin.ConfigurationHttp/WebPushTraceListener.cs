@@ -84,7 +84,7 @@ namespace Plugin.ConfigurationHttp
 					Type type = data.GetType();
 					switch(type.FullName)
 					{
-					case "System.Xml.DocumentXPathNavigator"://WCF исключения приходят как DocumentXPathNavigator, а он вместо XML отдаёт значение поля...
+					case "System.Xml.DocumentXPathNavigator"://WCF exceptions come as DocumentXPathNavigator, but instead of XML, it returns the field value...
 						message = (String)type.InvokeMember("OuterXml", System.Reflection.BindingFlags.GetProperty | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public, null, data, null);
 						break;
 					default:

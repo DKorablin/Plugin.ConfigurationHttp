@@ -5,7 +5,7 @@
 			var _this = this;
 
 			var request = new XMLHttpRequest();
-			request.onreadystatechange = function () { _this.OnLoaded(request, callback); };
+			request.onreadystatechange = () => _this.OnLoaded(request, callback);
 			request.withCredentials = ajax.withCredentials;
 			request.open(ajax.Method, ajax.Url, true);
 			request.setRequestHeader("Content-Type", "application/json; charset=utf-8");

@@ -7,25 +7,25 @@ using System.Web;
 
 namespace Plugin.ConfigurationHttp
 {
-	/// <summary>Обёртка метода контроллера</summary>
+	/// <summary>The controller method wrapper</summary>
 	internal class MethodWrapper
 	{
-		/// <summary>Рефлексия метода</summary>
+		/// <summary>The method reflection information.</summary>
 		private readonly MethodInfo _method;
-		/// <summary>Контроллер этого метода</summary>
+		/// <summary>The instance of the controller.</summary>
 		private readonly Object _controller;
 
 		private static readonly String[] HttpMethods = new String[] { "GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", };
 
-		/// <summary>HTTP метод под которым разрешён этот метод</summary>
+		/// <summary>The HTTP(s) method which is allowed to use with this method.</summary>
 		public String HttpMethod { get; }
 
-		/// <summary>Внешняя ссылка на метод</summary>
+		/// <summary>The external url to this method.</summary>
 		public String Id { get; }
 
-		/// <summary>Создать обёртку для метода контроллера</summary>
-		/// <param name="method">Рефлексия метода</param>
-		/// <param name="controller">Контроллер, где есть этот метод</param>
+		/// <summary>Create a wrapper for the controller method</summary>
+		/// <param name="method">The method reflection.</param>
+		/// <param name="controller">The controller information where this method declared.</param>
 		public MethodWrapper(Object controller, MethodInfo method)
 		{
 			String methodName = method.Name;
@@ -49,9 +49,9 @@ namespace Plugin.ConfigurationHttp
 			this.Id = ctrlNamespace + "." + methodName + "?" + String.Join(",", args);
 		}
 
-		/// <summary>Выполнить метод из HTTP(s) параметров</summary>
-		/// <param name="keyValue">Кюч/значение</param>
-		/// <returns>Результат выполнения метода</returns>
+		/// <summary>Invoke current method using HTTP(s) request with arguments.</summary>
+		/// <param name="keyValue">The list of Key/values that should used as method arguments.</param>
+		/// <returns>The result of method invocation.</returns>
 		public ResponseBase Invoke(NameValueCollection keyValue)
 		{
 			Object[] args = this.ConvertMethodParams(keyValue);
@@ -70,9 +70,9 @@ namespace Plugin.ConfigurationHttp
 			}
 		}
 
-		/// <summary>Преобразовать HTTP(s) параметры в аргументы методов</summary>
-		/// <param name="keyValue">Ключ/значение</param>
-		/// <returns>Массив аргументов методов</returns>
+		/// <summary>Convert HTTP(s) parameters to method arguments.</summary>
+		/// <param name="keyValue">The input arguments information in Key/Value format.</param>
+		/// <returns>Converted arguments that could be used to invoke .NET method.</returns>
 		private Object[] ConvertMethodParams(NameValueCollection keyValue)
 		{
 			ParameterInfo[] parameters = this._method.GetParameters();

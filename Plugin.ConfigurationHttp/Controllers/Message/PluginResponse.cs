@@ -7,32 +7,32 @@ namespace Plugin.ConfigurationHttp.Controllers.Message
 	[DataContract]
 	public class PluginResponse
 	{
-		/// <summary>Уникальный идентификатор плагина.</summary>
-		/// <remarks>Пока Name является уникальным идентификатором плагина</remarks>
+		/// <summary>The plugin unique identifier.</summary>
+		/// <remarks>For the time being the Name is a unique identifier for the plugin</remarks>
 		[DataMember]
 		public String ID { get; private set; }
 
-		/// <summary>Наименование планина</summary>
+		/// <summary>The plugin name.</summary>
 		[DataMember]
 		public String Name { get; private set; }
 
-		/// <summary>Источник получения плагина</summary>
+		/// <summary>The source of the plugin</summary>
 		[DataMember]
 		public String Source { get; private set; }
 
-		/// <summary>Версия плагина</summary>
+		/// <summary>The plugin version.</summary>
 		[DataMember]
 		public Version Version { get; private set; }
 
-		/// <summary>Описание сборки</summary>
+		/// <summary>The plugin (assembly) description.</summary>
 		[DataMember]
 		public String Description { get; private set; }
 
-		/// <summary>Создатель сборки</summary>
+		/// <summary>Assembly company</summary>
 		[DataMember]
 		public String Company { get; private set; }
 
-		/// <summary>Копирайт плагина</summary>
+		/// <summary>Plugin copyright.</summary>
 		[DataMember]
 		public String Copyright { get; private set; }
 

@@ -7,7 +7,7 @@ using System.Web;
 
 namespace Plugin.ConfigurationHttp
 {
-	/// <summary>Фасад HTTP сервера</summary>
+	/// <summary>The HTTP(s) server facade.</summary>
 	internal class HttpServerFacade : IDisposable
 	{
 		private readonly Plugin _plugin;
@@ -15,39 +15,39 @@ namespace Plugin.ConfigurationHttp
 		private readonly ControllersWrapper _controllers;
 		private static readonly StaticFilesWrapper Static = new StaticFilesWrapper();
 
-		/// <summary>Сервис в режиме прослушки</summary>
+		/// <summary>The service is started as the listener.</summary>
 		public Boolean IsListening => this._wrapper.IsListening;
 
 		public IEnumerable<String> Endpoints => this._wrapper.Endpoints;
 
-		/// <summary>Конструктор фасада</summary>
-		/// <param name="plugin">Плагин</param>
-		/// <param name="controllers">Массив контроллеров, которые обрабатывают запросы клиентов</param>
+		/// <summary>Create instance of <see cref="HttpServerFacade"/> with host plugin instance and the list of known public methods.</summary>
+		/// <param name="plugin">The host plugin information.</param>
+		/// <param name="controllers">The list of controllers, which can process users requests.</param>
 		public HttpServerFacade(Plugin plugin, Object[] controllers)
 		{
 			this._plugin = plugin;
-			this._plugin.Settings.PropertyChanged += Settings_PropertyChanged;
+			this._plugin.Settings.PropertyChanged += this.Settings_PropertyChanged;
 			this._controllers = new ControllersWrapper(controllers);
 
 			this._wrapper = new HttpListenerWrapper();
-			this._wrapper.ProcessRequest += wrapper_ProcessRequest;
+			this._wrapper.ProcessRequest += this.Wrapper_ProcessRequest;
 		}
 
-		/// <summary>Запустить сервер</summary>
+		/// <summary>Start HTTP(s) server</summary>
 		public void Start()
 			=> this._wrapper.Start(this._plugin.Settings.GetHostUrl(),
 				this._plugin.Settings.ListenersCount,
 				this._plugin.Settings.IgnoreWriteExceptions,
 				(AuthenticationSchemes)this._plugin.Settings.AuthenticationSchemes);
 
-		/// <summary>Остановить сервер</summary>
+		/// <summary>Stop HTTP(s) server</summary>
 		public void Stop()
 			=> this._wrapper.Stop();
 
 		public void Dispose()
 		{
 			this._wrapper.Dispose();
-			this._plugin.Settings.PropertyChanged -= Settings_PropertyChanged;
+			this._plugin.Settings.PropertyChanged -= this.Settings_PropertyChanged;
 		}
 
 		private void Settings_PropertyChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -63,7 +63,7 @@ namespace Plugin.ConfigurationHttp
 			}
 		}
 
-		private void wrapper_ProcessRequest(HttpListenerContext context)
+		private void Wrapper_ProcessRequest(HttpListenerContext context)
 		{
 			if(!this._plugin.Settings.Authenticate(context.User))
 			{
@@ -87,9 +87,8 @@ namespace Plugin.ConfigurationHttp
 			}
 		}
 
-		/// <summary>Поискать ответ из контроллерах или ресурсах</summary>
-		/// <param name="request">Запрос клиента</param>
-		/// <returns>Результат</returns>
+		/// <summary>Search for an answer in controllers or resources and send response.</summary>
+		/// <param name="request">The user's request</param>
 		private void SendResponse(HttpListenerRequest request, HttpListenerResponse response)
 		{
 			String localPath = StaticFilesWrapper.FormatResourceName(request.Url.LocalPath);
@@ -128,10 +127,10 @@ namespace Plugin.ConfigurationHttp
 			}
 		}
 
-		/// <summary>Получить результат из подгруженных контроллеров</summary>
-		/// <param name="localPath">Путь до метода в контроллере</param>
-		/// <param name="request">Входящий HTTP(S) запрос</param>
-		/// <returns>Результат в массиве байт или null</returns>
+		/// <summary>Get the result from loaded controllers</summary>
+		/// <param name="localPath">Path to the method in the controller</param>
+		/// <param name="request">Incoming HTTP(s) request</param>
+		/// <returns>The result is a byte array or null.</returns>
 		private ResponseBase GetControllerResult(String localPath, HttpListenerRequest request)
 		{
 			NameValueCollection keyValue = HttpServerFacade.ParseMethodParams(request);
@@ -144,9 +143,9 @@ namespace Plugin.ConfigurationHttp
 			return method.Invoke(keyValue);
 		}
 
-		/// <summary>Получить входящие параметры в ввиде Ключ/Значение</summary>
-		/// <param name="request">Внешний HTTP(S) запрос</param>
-		/// <returns>Ключ/Значение входящих параметров, из запроса</returns>
+		/// <summary>Get input parameters as Key/Value</summary>
+		/// <param name="request">External HTTP(s) request</param>
+		/// <returns>Key/Value of incoming parameters from the request</returns>
 		private static NameValueCollection ParseMethodParams(HttpListenerRequest request)
 		{
 			NameValueCollection result = HttpUtility.ParseQueryString(request.Url.Query);

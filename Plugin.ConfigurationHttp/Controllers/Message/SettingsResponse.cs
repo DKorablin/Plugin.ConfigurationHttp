@@ -36,7 +36,7 @@ namespace Plugin.ConfigurationHttp.Controllers.Message
 		public Boolean IsPassword { get; private set; }
 
 		[DataMember(EmitDefaultValue=false)]
-		public String Editor { get; private set; }
+		public String[] Editors { get; private set; }
 
 		internal SettingsResponse(PropertyInfo item, Object target)
 		{
@@ -65,9 +65,9 @@ namespace Plugin.ConfigurationHttp.Controllers.Message
 			if(pAttr != null)
 				this.IsPassword = pAttr.Password;
 
-			EditorAttribute editorAttr = item.GetCustomAttribute<EditorAttribute>();
+			EditorAttribute[] editorAttr = item.GetCustomAttributes<EditorAttribute>();
 			if(editorAttr != null)
-				this.Editor = editorAttr.EditorTypeName;
+				this.Editors = Array.ConvertAll(editorAttr, e => e.EditorTypeName);
 		}
 	}
 }

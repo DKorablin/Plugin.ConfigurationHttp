@@ -10,13 +10,13 @@ namespace Plugin.ConfigurationHttp.Ipc.Control
 	{
 		private readonly Int32 _processId = Process.GetCurrentProcess().Id;
 
-		/// <summary>Подключить процесс к оповещению</summary>
-		/// <param name="processId">Идентификатор подключаемого процесса</param>
-		/// <param name="endpointAddress">IPC адрес процесса</param>
+		/// <summary>Connect a process to an alert</summary>
+		/// <param name="processId">The process ID of the connecting process</param>
+		/// <param name="endpointAddress">IPC process address</param>
 		public Int32 Connect(Int32 processId, String endpointAddress)
 		{
 			if(ServiceFactory.Proxies.ContainsKey(processId))
-				throw new FaultException(String.Format("Connect -> ControlServiceProxy ({0:N0}) already registered", processId), new FaultCode(HttpStatusCode.BadRequest.ToString()));
+				throw new FaultException($"Connect -> ControlServiceProxy ({processId:N0}) already registered", new FaultCode(HttpStatusCode.BadRequest.ToString()));
 
 			PluginsServiceProxy proxy = new PluginsServiceProxy(endpointAddress);
 			ServiceFactory.Proxies.Add(processId, proxy);
@@ -25,12 +25,12 @@ namespace Plugin.ConfigurationHttp.Ipc.Control
 			return this._processId;
 		}
 
-		/// <summary>Отключить процесс от оповещения</summary>
-		/// <param name="processId">Идентификатор отключаемого процесса</param>
+		/// <summary>Disconnect a process to an alert</summary>
+		/// <param name="processId">The process ID of the disconnecting process</param>
 		public void Disconnect(Int32 processId)
 		{
 			if(!ServiceFactory.Proxies.Remove(processId))
-				throw new FaultException(String.Format("Disconnect -> ControlServiceProxy ({0:N0}) not registered", processId), new FaultCode(HttpStatusCode.BadRequest.ToString()));
+				throw new FaultException($"Disconnect -> ControlServiceProxy ({processId:N0}) not registered", new FaultCode(HttpStatusCode.BadRequest.ToString()));
 
 			Plugin.Trace.TraceEvent(TraceEventType.Information, 5, "ControlHost ({0:N0}): ControlServiceProxy ({1:N0)) disconnected. Total: {2:N0}", this._processId, processId, ServiceFactory.Proxies.Count);
 			/*foreach(PluginsServiceProxy item in this.Proxies.Values)
@@ -38,11 +38,8 @@ namespace Plugin.ConfigurationHttp.Ipc.Control
 		}
 
 		public Int32 Ping(Int32 processId)
-		{
-			if(ServiceFactory.Proxies.ContainsKey(processId))
-				return this._processId;
-			else
-				throw new FaultException(String.Format("Ping -> ControlServiceProxy ({0:N0}) not registered", processId), new FaultCode(HttpStatusCode.BadRequest.ToString()));
-		}
+			=> ServiceFactory.Proxies.ContainsKey(processId)
+				? this._processId
+				: throw new FaultException($"Ping -> ControlServiceProxy ({processId:N0}) not registered", new FaultCode(HttpStatusCode.BadRequest.ToString()));
 	}
 }

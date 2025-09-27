@@ -14,7 +14,7 @@ namespace Plugin.ConfigurationHttp
 {
 	internal class ServiceFactory : IDisposable
 	{
-		//TODO: Перейти на ConcurrentDictionary
+		//TODO: Upgrade to ConcurrentDictionary
 		public static Dictionary<Int32, PluginsServiceProxy> Proxies = new Dictionary<Int32, PluginsServiceProxy>();
 
 		private readonly Plugin _plugin;
@@ -42,7 +42,7 @@ namespace Plugin.ConfigurationHttp
 						? CommunicationState.Opened
 						: CommunicationState.Closed;
 					if(this._controlHost.State != webState)
-						return CommunicationState.Faulted;//Если они оба не запущены, то возвращаем ошибку
+						return CommunicationState.Faulted;//If both are not running, then we return an error.
 
 					return this._controlHost.State;
 				} else if(this._controlProxy != null)
@@ -54,7 +54,7 @@ namespace Plugin.ConfigurationHttp
 		public ServiceFactory(Plugin plugin)
 			=> this._plugin = plugin ?? throw new ArgumentNullException(nameof(plugin));
 
-		/// <summary>Получить список адресов, под которыми запущенны хосты</summary>
+		/// <summary>Get a list of addresses under which hosts are running</summary>
 		/// <returns></returns>
 		public IEnumerable<String> GetHostEndpoints()
 		{
@@ -104,8 +104,8 @@ namespace Plugin.ConfigurationHttp
 		{
 			try
 			{
-				/*TODO: Тут бывает плавающее исключение, когда _controlWebHost уже открыт, а _controlHost ещё не создан.
-				При этом, _controlProxy не может подключиться к ещё не созданному _controlHost'у*/
+				/*TODO: There is a floating exception here when _controlWebHost is already open, but _controlHost has not yet been created.
+				In this case, _controlProxy cannot connect to _controlHost that has not yet been created.*/
 				this._controlProxy = new ControlServiceProxy(this.BaseControlAddress, "Host");
 				this._controlProxy.Open();
 				this._controlProxy.CreateClientHost();
@@ -230,7 +230,7 @@ namespace Plugin.ConfigurationHttp
 				{
 					PluginResponse[] data;
 					List<Int32> failedProxies = new List<Int32>();
-					foreach(KeyValuePair<Int32, PluginsServiceProxy> proxy in ServiceFactory.Proxies)//TODO: В потоках может из словарика удаляться или добавляться объекты
+					foreach(KeyValuePair<Int32, PluginsServiceProxy> proxy in ServiceFactory.Proxies)//TODO: Streams can remove or add objects from the dictionary.
 						try
 						{
 							data = proxy.Value.Plugins.GetPlugins(null);
@@ -243,7 +243,7 @@ namespace Plugin.ConfigurationHttp
 							failedProxies.Add(proxy.Key);
 						}
 
-					foreach(Int32 proxy in failedProxies)//Удаляю прокси с которыми не удалось связаться (TODO: Возможно, стоит дать несколько попыток соедениться)
+					foreach(Int32 proxy in failedProxies)//Removing proxies that couldn't be contacted (TODO: It might be worth giving it a few more attempts to connect)
 						ServiceFactory.Proxies.Remove(proxy);
 
 				} else if(!this._controlProxy.Ping())

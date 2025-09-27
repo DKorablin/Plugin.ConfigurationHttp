@@ -9,9 +9,9 @@ namespace Plugin.ConfigurationHttp
 {
 	internal static class Utils
 	{
-		/// <summary>Проверка исключения на фатальное, после которого дальнейшее выполнение кода невозможно</summary>
-		/// <param name="exception">Исключение для проверки</param>
-		/// <returns>Исключение фатальное</returns>
+		/// <summary>Checking for a fatal exception after which further code execution is impossible</summary>
+		/// <param name="exception">The exception for verification</param>
+		/// <returns>The exception is fatal</returns>
 		public static Boolean IsFatal(Exception exception)
 		{
 			while(exception != null)
@@ -31,7 +31,7 @@ namespace Plugin.ConfigurationHttp
 			Int32 counter = 0;
 			for(Int32 loop = 0; loop < bits.Length; loop++)
 			{
-				if(result.Length <= loop)//Увеличиваю массив на один, если не помещается значение
+				if(result.Length <= loop)//Increase the array by one if the value does not fit.
 					Array.Resize<UInt32>(ref result, result.Length + 1);
 
 				for(Int32 innerLoop = 0; innerLoop < 32; innerLoop++)
@@ -47,9 +47,9 @@ namespace Plugin.ConfigurationHttp
 		}
 
 		#region Search
-		/// <summary>Получить список поисковых параметров в плагине</summary>
-		/// <param name="plugin">Экземпляр плагин для возврата поисковых строк</param>
-		/// <returns>Найденные поисковые строки в плагине</returns>
+		/// <summary>Get a list of search parameters in the plugin</summary>
+		/// <param name="plugin">A plugin instance for returning search strings</param>
+		/// <returns>Search strings found in the plugin</returns>
 		public static IEnumerable<String> GetPluginSearchMembers(IPluginDescription plugin)
 		{
 			foreach(String value in SearchProperties(plugin, false))
@@ -60,10 +60,10 @@ namespace Plugin.ConfigurationHttp
 					yield return value;
 		}
 
-		/// <summary>Поиск по свойствам экземпляра объекта</summary>
-		/// <param name="instance">Объект, по свойствам которого поискать</param>
-		/// <param name="searchAttributes">Поиск по атрибутам каждого свойства</param>
-		/// <returns>Найденные поисковые строки в свойствах экземпляра объекта</returns>
+		/// <summary>Search by properties of an object instance</summary>
+		/// <param name="instance">The object whose properties to search by</param>
+		/// <param name="searchAttributes">Search by attributes of each property</param>
+		/// <returns>Search strings found in object instance properties</returns>
 		private static IEnumerable<String> SearchProperties(Object instance, Boolean searchAttributes)
 		{
 			PropertyInfo[] properties = instance.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty | BindingFlags.FlattenHierarchy);
@@ -72,7 +72,7 @@ namespace Plugin.ConfigurationHttp
 				yield return property.Name;
 
 				if(searchAttributes)
-				{//Ищем по всем атрибутам, дабы не хардкодить конкретные атрибуты
+				{//We search by all attributes so as not to hardcode specific attributes
 					Object[] attributes = property.GetCustomAttributes(false);
 					if(attributes != null)
 						foreach(Object attribute in attributes)
@@ -82,7 +82,7 @@ namespace Plugin.ConfigurationHttp
 
 				if(property.CanRead
 					&& property.GetIndexParameters().Length == 0
-					&& Array.Exists<Type>(property.PropertyType.GetInterfaces(), p => { return p == typeof(IComparable); }))
+					&& Array.Exists<Type>(property.PropertyType.GetInterfaces(), p => p == typeof(IComparable)))
 				{
 					Object value = property.GetValue(instance, null);
 					if(value != null)

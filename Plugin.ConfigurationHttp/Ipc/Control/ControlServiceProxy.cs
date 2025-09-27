@@ -31,7 +31,7 @@ namespace Plugin.ConfigurationHttp.Ipc.Control
 		{
 
 			ServiceHost pluginsHost = ServiceConfiguration.Instance.Create<PluginsIpcService, IPluginsIpcService>(this.ClientBaseAddress, "Plugins");
-			pluginsHost.Faulted += NotifyHost_Faulted;
+			pluginsHost.Faulted += this.NotifyHost_Faulted;
 			pluginsHost.Open();
 			this.PluginsHost = pluginsHost;
 
@@ -82,7 +82,7 @@ namespace Plugin.ConfigurationHttp.Ipc.Control
 					base.Channel.Disconnect(this._processId);
 					base.Close();
 				} catch(CommunicationException exc)
-				{//Ошибка при попытке отключиться от процесса. Тут, в теории, может понадобиться проверка на существование контрольного процесса
+				{//An error occurred while attempting to disconnect from a process. In theory, a check for the existence of the control process might be necessary here.
 					Plugin.Trace.TraceEvent(TraceEventType.Warning, 7, "ControlServiceProxy ({0:N0}): Dispose exception. Message: {1}", this._processId, exc.Message);
 				}
 

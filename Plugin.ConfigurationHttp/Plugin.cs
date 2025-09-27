@@ -16,10 +16,10 @@ namespace Plugin.ConfigurationHttp
 
 		internal static TraceSource Trace => Plugin._trace ?? (Plugin._trace = Plugin.CreateTraceSource<Plugin>());
 
-		/// <summary>Настройки для взаимодействия из хоста</summary>
+		/// <summary>Settings for interaction from the host</summary>
 		Object IPluginSettings.Settings => this.Settings;
 
-		/// <summary>Настройки для взаимодействия из плагина</summary>
+		/// <summary>Settings for interaction from the plugin</summary>
 		public PluginSettings Settings
 		{
 			get
@@ -41,7 +41,7 @@ namespace Plugin.ConfigurationHttp
 		Boolean IPlugin.OnConnection(ConnectMode mode)
 		{
 			this._server = new ServiceFactory(this);
-			this._server.Connected += Server_Connected;
+			this._server.Connected += this.Server_Connected;
 			this._server.Connect(this.Settings.GetHostUrl());
 			return true;
 		}
