@@ -204,6 +204,16 @@ namespace Plugin.ConfigurationHttp
 		}
 
 		[Category("Notifications")]
+		[DisplayName("Time to Live")]
+		[Description("Specifies the time (in seconds) the push message is retained by the push service and attempts to deliver it to the user agent. This value must be an integer between 0 and 10,000, inclusive.\r\nA value of 0 indicates that the push message is not retained at all. The default value is 0.")]
+		[DefaultValue(Constants.WebPushTtl)]
+		public Int32 WebPushTtl
+		{
+			get => this._webPushTtl;
+			set => this.SetField(ref this._webPushTtl, value < 0 || value > 10000 ? this.WebPushTtl : value, nameof(this.WebPushTtl));
+		}
+
+		[Category("Notifications")]
 		[DisplayName("VAPID Subject")]
 		[Description("A contact URI for the application server.\r\nThis string is either a mailto: or a URL.\r\nIt is used by push services to contact the application server operator if necessary.")]
 		public String VapidSubject
@@ -264,16 +274,6 @@ namespace Plugin.ConfigurationHttp
 				this.WebPush = newValue;
 				this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(WebPushJson)));
 			}
-		}
-
-		[Category("Notifications")]
-		[DisplayName("Time to Live")]
-		[Description("Time to live received message in browser before it will be destroyed")]
-		[DefaultValue(Constants.WebPushTtl)]
-		public Int32 WebPushTtl
-		{
-			get => this._webPushTtl;
-			set => this.SetField(ref this._webPushTtl, value < 0 || value > 10000 ? WebPushTtl : value, nameof(WebPushTtl));
 		}
 
 		/// <summary>Host address of the current machine</summary>
