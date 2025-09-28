@@ -3,9 +3,9 @@
 		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
 	</PropertyGroup>
 	<ItemGroup>
-		<GlobalPackageReference Include="SAL.Flatbed" Version="1.2.10">
+		<PackageVersion Include="SAL.Flatbed" Version="1.2.10">
 			<ExcludeAssets>runtime</ExcludeAssets>
-		</GlobalPackageReference>
+		</PackageVersion>
 		<PackageVersion Include="WebPush" Version="1.0.12" />
 		<PackageVersion Include="Portable.BouncyCastle" Version="1.9.0" />
 	</ItemGroup>
