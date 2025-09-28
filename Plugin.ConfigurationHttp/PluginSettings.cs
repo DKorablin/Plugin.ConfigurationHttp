@@ -7,9 +7,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Security.Principal;
 using System.Text;
-using AlphaOmega.MQ.Publisher;
+using Org.BouncyCastle.Asn1.Ocsp;
 using Plugin.ConfigurationHttp.UI;
 using SAL.Flatbed;
+using WebPush;
 
 namespace Plugin.ConfigurationHttp
 {
@@ -21,28 +22,26 @@ namespace Plugin.ConfigurationHttp
 			public String Description { get; set; }
 		}
 
-		/// <summary>Данные для отправки WebPush сообщений</summary>
+		/// <summary>Data for sending WebPush messages</summary>
 		[Serializable]
 		public class PushSettings
 		{
-			private Uri _endpoint;
-			private Byte[] _p256dh;
-			private Byte[] _auth;
+			private String _endpoint;
+			private String _p256dh;
+			private String _auth;
 
 			[Category("Web Push")]
 			[DisplayName("endpoint")]
 			[Description("The endpoint takes the form of a custom URL pointing to a push server, which can be used to send a push message to the particular service worker instance that subscribed to the push service")]
 			public String Endpoint
 			{
-				get => this._endpoint?.ToString();
+				get => this._endpoint;
 				set
 				{
-					if(String.IsNullOrEmpty(value))
+					if(String.IsNullOrWhiteSpace(value))
 						this._endpoint = null;
-					else if(value.Trim().Length == 0)
-						this._endpoint = null;
-					else if(!Uri.TryCreate(value, UriKind.Absolute, out this._endpoint))
-						this._endpoint = null;
+					else if(Uri.IsWellFormedUriString(value, UriKind.Absolute))
+						this._endpoint = value;
 				}
 			}
 
@@ -51,18 +50,8 @@ namespace Plugin.ConfigurationHttp
 			[Description("An Elliptic curve Diffie–Hellman public key on the P-256 curve (that is, the NIST secp256r1 elliptic curve).\r\nThe resulting key is an uncompressed point in ANSI X9.62 format.")]
 			public String P256dh
 			{
-				get => this._p256dh == null ? null : Convert.ToBase64String(this._p256dh);
-				set
-				{
-					if(String.IsNullOrEmpty(value))
-						value = null;
-					else if(value.Trim().Length == 0)
-						value = null;
-
-					this._p256dh = value == null
-						? null
-						: Convert.FromBase64String(value.Replace(' ', '+'));
-				}
+				get => this._p256dh;
+				set => this._p256dh = String.IsNullOrWhiteSpace(value) ? null : value.Trim();
 			}
 
 			[Category("Web Push")]
@@ -70,25 +59,9 @@ namespace Plugin.ConfigurationHttp
 			[Description("An authentication secret, as described in Message Encryption for Web Push")]
 			public String Auth
 			{
-				get => this._auth == null ? null : Convert.ToBase64String(this._auth);
-				set
-				{
-					if(String.IsNullOrEmpty(value))
-						value = null;
-					else if(value.Trim().Length == 0)
-						value = null;
-
-					this._auth = value == null
-						? null
-						: Convert.FromBase64String(value.Replace(' ', '+'));
-				}
+				get => this._auth;
+				set => this._auth = String.IsNullOrWhiteSpace(value) ? null : value.Trim();
 			}
-
-			internal Uri EndpointI => this._endpoint;
-
-			internal Byte[] P256dhI => this._p256dh;
-
-			internal Byte[] AuthI => this._auth;
 
 			public PushSettings()
 			{ }
@@ -113,11 +86,11 @@ namespace Plugin.ConfigurationHttp
 				if(!(obj is PushSettings push))
 					return false;
 
-				return push.IsEmpty() == this.IsEmpty() || this.EndpointI == push.EndpointI && this.Auth == push.Auth && this.P256dh == push.P256dh;
+				return push.IsEmpty() == this.IsEmpty() || this.Endpoint == push.Endpoint && this.Auth == push.Auth && this.P256dh == push.P256dh;
 			}
 
 			public override Int32 GetHashCode()
-				=> this.EndpointI == null ? 0 : this.EndpointI.GetHashCode();
+				=> this.Endpoint == null ? 0 : this.Endpoint.GetHashCode();
 		}
 
 		private static class Constants
@@ -135,9 +108,14 @@ namespace Plugin.ConfigurationHttp
 		private Boolean _unsafeConnectionNtlmAuthentication = false;
 		private String _realm;
 		private String[] _users;
-		private Int32 _webPushTtl = Constants.WebPushTtl;
 		private AuthenticationSchemes _authenticationSchemes = System.Net.AuthenticationSchemes.Anonymous;
+
 		private TraceEventType _webPushEventTypes = TraceEventType.Error;
+		private Int32 _webPushTtl = Constants.WebPushTtl;
+		private String _vapidSubject;
+		private String _vapidPublicKey;
+		private String _vapidPrivateKey;
+
 		private static IPAddress _HostAddress;
 
 		[Category("Server")]
@@ -223,6 +201,51 @@ namespace Plugin.ConfigurationHttp
 		{
 			get => this._webPushEventTypes;
 			set => this.SetField(ref this._webPushEventTypes, value == 0 ? TraceEventType.Error : value, nameof(this.WebPushEventTypes));
+		}
+
+		[Category("Notifications")]
+		[DisplayName("VAPID Subject")]
+		[Description("A contact URI for the application server.\r\nThis string is either a mailto: or a URL.\r\nIt is used by push services to contact the application server operator if necessary.")]
+		public String VapidSubject
+		{
+			get => this._vapidSubject;
+			set => this.SetField(ref this._vapidSubject, value.Trim(), nameof(this.VapidSubject));
+		}
+
+		[Category("Notifications")]
+		[DisplayName("VAPID Public Key")]
+		[Description("VAPID (Voluntary Application Server Identification) keys are an Elliptic Curve key pair will be generated automatically on first request")]
+		public String VapidPublicKey
+		{
+			get
+			{
+				if(this._vapidPublicKey == null)
+				{
+					Utils.GenerateVapidKeys(out String publicKey, out String privateKey);
+					this.VapidPublicKey = publicKey;
+					this.VapidPrivateKey = privateKey;
+				}
+				return this._vapidPublicKey;
+			}
+			set => this.SetField(ref this._vapidPublicKey, value.Trim(), nameof(this.VapidPublicKey));
+		}
+
+		[Category("Notifications")]
+		[DisplayName("VAPID Private Key")]
+		[Description("VAPID (Voluntary Application Server Identification) keys are an Elliptic Curve key pair will be generated automatically on first request")]
+		public String VapidPrivateKey
+		{
+			get
+			{
+				if(this._vapidPrivateKey == null)
+				{
+					Utils.GenerateVapidKeys(out String publicKey, out String privateKey);
+					this.VapidPublicKey = publicKey;
+					this.VapidPrivateKey = privateKey;
+				}
+				return this._vapidPrivateKey;
+			}
+			set => this.SetField(ref this._vapidPrivateKey, value.Trim(), nameof(this.VapidPrivateKey));
 		}
 
 		[Browsable(false)]
@@ -319,11 +342,36 @@ namespace Plugin.ConfigurationHttp
 		{
 			if(this.WebPush.IsEmpty())
 				return;
+			if(this.VapidSubject == null)
+				return;
 
-			String json = Serializer.JavaScriptSerialize(new PushMessage() { Title = title, Description = description, });
+			try
+			{
 
-			PushWebRequest publisher = new PushWebRequest(this.WebPush.EndpointI, this.WebPushTtl, null);
-			publisher.SendMessage(this.WebPush.P256dhI, this.WebPush.AuthI, json);
+				String json = Serializer.JavaScriptSerialize(new PushMessage() { Title = title, Description = description, });
+
+				PushSubscription subscription = new PushSubscription(this.WebPush.Endpoint, this.WebPush.P256dh, this.WebPush.Auth);
+
+				using(WebPushClient client = new WebPushClient())
+				{
+					client.SetVapidDetails(this.VapidSubject, this.VapidPublicKey, this.VapidPrivateKey);
+
+					Dictionary<String, Object> options = new Dictionary<String, Object>()
+					{
+						{ "TTL", this.WebPushTtl },
+					}
+				;
+					client.SendNotification(subscription, payload: json, options: options);
+				}
+			} catch(WebPushException exc)
+			{
+				switch(exc.HttpResponseMessage.StatusCode)
+				{
+				case System.Net.HttpStatusCode.Gone:
+					this.WebPushJson = null;
+					break;
+				}
+			}
 		}
 
 		#region INotifyPropertyChanged

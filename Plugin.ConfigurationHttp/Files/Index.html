@@ -21,7 +21,7 @@
 			<div id="cSettings" class="settings">
 				<script type="text/javascript" src="PushSubscriber.js"></script>
 				<script type="text/javascript">
-					var _pushSubscriber = new PushSubscriber("PushWorker.js", "/Push/Subscribe", "/Push/Unsubscribe", false);
+					var _pushSubscriber = new PushSubscriber("PushWorker.js", null, "/Push/Subscribe", "/Push/Unsubscribe", false);
 				</script>
 				<input type="button" value="Subscribe" onclick="_pushSubscriber.Subscribe(); return false;" /> <input type="button" value="Unsubscribe" onclick="_pushSubscriber.Unsubscribe(); return false;" />
 			</div>

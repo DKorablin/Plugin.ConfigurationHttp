@@ -132,7 +132,7 @@ namespace Plugin.ConfigurationHttp
 				{
 					if(this.TryCreateWebHost())
 					{
-						this._controlHost = ServiceConfiguration.Instance.Create<ControlService, IControlService>(this.BaseControlAddress, "Host");
+						this._controlHost = Ipc.ServiceConfiguration.Instance.Create<ControlService, IControlService>(this.BaseControlAddress, "Host");
 						this._controlHost.Open();
 						this._controlHost.Faulted += this.ControlHost_Faulted;
 					} else

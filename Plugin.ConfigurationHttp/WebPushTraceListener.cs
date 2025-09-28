@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using AlphaOmega.MQ.Publisher;
+using WebPush;
 
 namespace Plugin.ConfigurationHttp
 {
@@ -100,18 +100,6 @@ namespace Plugin.ConfigurationHttp
 			=> Plugin._settings != null && Plugin._settings.WebPush != null;
 
 		private void SendPushMessage(String title, String message)
-		{
-			if(Plugin._settings == null)
-				return;
-
-			try
-			{
-				Plugin._settings.SendPushMessage(title, message);
-			} catch(PushException)
-			{
-				Plugin._settings.WebPushJson = null;
-				throw;
-			}
-		}
+			=> Plugin._settings?.SendPushMessage(title, message);
 	}
 }

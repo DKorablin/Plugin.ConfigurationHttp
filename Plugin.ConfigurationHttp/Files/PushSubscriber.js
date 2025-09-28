@@ -16,11 +16,15 @@ function PushEndpointPayload(subscription) {
 
 // Создание замыкания, с указанием серверных параметров
 // serviceWorkerUri - Ссылка на JS файла ServiceWorker'а
+// vapidKey - VAPID ключ в формате Base64Url
 // subscriberUri - Ссылка на AJAX сервис подписки на PUSH'ы
 // unsubscribeUri - Ссылка на AJAX сервис отписки на PUSH'ы
 // auto - Автоподписка сразу при загрузке формы
-function PushSubscriber(serviceWorkerUri, subscribeUri, unsubscribeUri, auto) {
+function PushSubscriber(serviceWorkerUri, vapidKey, subscribeUri, unsubscribeUri, auto) {
 	this.i._seviceWorkerUri = serviceWorkerUri;
+	this.i._vapidKey = vapidKey == null
+		? null
+		: Uint8Array.from(atob(vapidKey.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0));
 
 	this.Async._subscribeUri = subscribeUri;
 	this.Async._unsubscribeUri = unsubscribeUri;
@@ -33,6 +37,7 @@ PushSubscriber.prototype = {
 	i: {
 		_isSubscribed: false,
 		_seviceWorkerUri: null,
+		_vapidKey: null,
 
 		RegisterWorker: function () {
 			if (this._seviceWorkerUri == null) return;
@@ -166,8 +171,12 @@ PushSubscriber.prototype = {
 			return;
 
 		this.i.RegisterWorker();
+		var key = this.i._vapidKey;
 		navigator.serviceWorker.ready.then(function (swRegistration) {
-			swRegistration.pushManager.subscribe({ userVisibleOnly: true })
+			swRegistration.pushManager.subscribe({
+				userVisibleOnly: true,
+				applicationServerKey: key
+			})
 				.then(function (subscription) {
 					if (subscription) {
 						var payload = new PushEndpointPayload(subscription);

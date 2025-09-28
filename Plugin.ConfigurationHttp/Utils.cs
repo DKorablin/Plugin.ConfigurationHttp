@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
 using SAL.Flatbed;
 
 namespace Plugin.ConfigurationHttp
@@ -44,6 +48,39 @@ namespace Plugin.ConfigurationHttp
 					break;
 			}
 			return result;
+		}
+
+		public static void GenerateVapidKeys(out String publicKey, out String privateKey)
+		{
+			// Get the P-256 elliptic curve
+			X9ECParameters ecParameters = ECNamedCurveTable.GetByName("prime256v1");
+			ECDomainParameters domainParameters = new ECDomainParameters(
+				ecParameters.Curve,
+				ecParameters.G,
+				ecParameters.N,
+				ecParameters.H,
+				ecParameters.GetSeed());
+
+			// Create an EC key pair generator
+			ECKeyPairGenerator keyPairGenerator = new ECKeyPairGenerator();
+			keyPairGenerator.Init(new ECKeyGenerationParameters(domainParameters, new SecureRandom()));
+
+			// Generate the key pair
+			var keyPair = keyPairGenerator.GenerateKeyPair();
+
+			// Extract public and private keys
+			ECPublicKeyParameters ecPublicKey = (ECPublicKeyParameters)keyPair.Public;
+			ECPrivateKeyParameters ecPrivateKey = (ECPrivateKeyParameters)keyPair.Private;
+
+			// Encode keys to URL-safe Base64
+			publicKey = UrlSafeBase64Encode(ecPublicKey.Q.GetEncoded(false));
+			privateKey = UrlSafeBase64Encode(ecPrivateKey.D.ToByteArrayUnsigned());
+
+			String UrlSafeBase64Encode(Byte[] bytes)
+				=> Convert.ToBase64String(bytes)
+					.TrimEnd('=')
+					.Replace('+', '-')
+					.Replace('/', '_');
 		}
 
 		#region Search
