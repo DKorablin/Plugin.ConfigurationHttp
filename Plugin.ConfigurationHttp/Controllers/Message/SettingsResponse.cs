@@ -51,10 +51,8 @@ namespace Plugin.ConfigurationHttp.Controllers.Message
 			Object rawValue = item.CanRead ? item.GetValue(target, null) : null;
 
 			// Force TimeSpan (and nullable TimeSpan) to serialize as constant (invariant) string for the JS UI
-			if(item.PropertyType == typeof(TimeSpan) && rawValue != null)
+			if((item.PropertyType == typeof(TimeSpan) || IsNullableTimeSpan(item.PropertyType)) && rawValue != null)
 				this.Value = TypeDescriptor.GetConverter(item.PropertyType).ConvertToInvariantString(rawValue);
-			else if(IsNullableTimeSpan(item.PropertyType) && rawValue != null)
-				this.Value = ((TimeSpan)rawValue).ToString("c", CultureInfo.InvariantCulture);
 			else
 				this.Value = rawValue;
 

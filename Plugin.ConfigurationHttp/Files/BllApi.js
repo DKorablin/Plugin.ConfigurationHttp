@@ -72,8 +72,89 @@ BllApi.prototype = {
 				callback(payload);
 		},
 
+		// Helper: detect plain object
+		_isPlainObject: function(o){ return o && Object.prototype.toString.call(o)==='[object Object]'; },
+
+		// Recursively build complex object view (read-only leafs if parent is read-only or unknown type)
+		_buildComplexObject: function(rootItem, value, evtPropertyChanged, readOnly){
+			var wrapper = document.createElement('DIV');
+			wrapper.className = 'complex';
+			for(var key in value){
+				if(!value.hasOwnProperty(key)) continue;
+				var row = document.createElement('DIV');
+				row.className = 'complex-row';
+				var lbl = document.createElement('SPAN');
+				lbl.className = 'complex-key';
+				lbl.innerHTML = key + ':'; 
+				row.appendChild(lbl);
+				var val = value[key];
+				var ctrl;
+				if(this._isPlainObject(val)){
+					ctrl = this._buildComplexObject(rootItem, val, evtPropertyChanged, true); // nested objects read-only for now
+				}else if(Array.isArray(val)){
+					ctrl = document.createElement('DIV');
+					ctrl.className='complex-array';
+					for(var i=0;i<val.length;i++){
+						var aItem = val[i];
+						var aRow = document.createElement('DIV');
+						aRow.className='complex-array-item';
+						if(this._isPlainObject(aItem))
+							aRow.appendChild(this._buildComplexObject(rootItem, aItem, evtPropertyChanged, true));
+						else{
+							var pre = document.createElement('PRE');
+							pre.innerHTML = aItem === null ? 'null' : aItem.toString();
+							aRow.appendChild(pre);
+						}
+						ctrl.appendChild(aRow);
+					}
+				}else{
+					// primitive
+					if(typeof val === 'boolean'){
+						ctrl = document.createElement('INPUT');
+						ctrl.type='checkbox';
+						ctrl.checked = val;
+						ctrl.disabled = true; // read-only for nested editing scope
+					}else if(typeof val === 'number'){
+						ctrl = document.createElement('INPUT');
+						ctrl.type='number';
+						ctrl.value = val;
+						ctrl.readOnly = true;
+					}else{
+						ctrl = document.createElement('INPUT');
+						ctrl.type='text';
+						ctrl.value = val === null ? 'null' : val.toString();
+						ctrl.readOnly = true;
+					}
+				}
+				row.appendChild(ctrl);
+				wrapper.appendChild(row);
+			}
+			return wrapper;
+		},
+
 		CreateSettingsCtrl: function (item, evtPropertyChanged) {
 			var result;
+			// Complex object rendering (non-null object Value, not primitive, not handled types)
+			if(item && item.Value && typeof item.Value === 'object' && !Array.isArray(item.Value) && [
+				'System.Boolean','System.SByte','System.UInt16','System.Int16','System.UInt32','System.Int32','System.UInt64','System.Int64','System.TimeSpan'
+			].indexOf(item.Type) === -1){
+				result = document.createElement('DIV');
+				result.className='complex-root';
+				var header = document.createElement('DIV');
+				header.className='complex-header';
+				header.innerHTML = '{object}';
+				var content = this._buildComplexObject(item, item.Value, evtPropertyChanged, !item.CanWrite);
+				content.style.display = 'none'; // hidden by default
+				header.onclick = function(){
+					content.style.display = content.style.display==='none' ? '' : 'none';
+					this.className = content.style.display==='none' ? 'complex-header collapsed' : 'complex-header expanded';
+				};
+				result.appendChild(header);
+				result.appendChild(content);
+				result.data = item;
+				return result; // read-only tree (editing nested not supported yet)
+			}
+
 			if (!item.CanWrite) {
 				result = document.createElement("PRE");
 				result.innerHTML = item.Value;
@@ -112,7 +193,6 @@ BllApi.prototype = {
 					result = Utils.CreateElement("INPUT", ["type", "number"], ["min", "-9223372036854775808"], ["max", "9223372036854775807"]);
 					break;
 				case "System.TimeSpan":
-					// Expected format: c (invariant) => d.hh:mm:ss.fffffff; keep as text with pattern hint
 					result = Utils.CreateElement("INPUT", ["type", "text"], ["placeholder", item.DefaultValue ? item.DefaultValue : "dd.hh:mm:ss"]);
 					result.title = "Format: d.hh:mm:ss[.fffffff]";
 					break;
@@ -153,10 +233,8 @@ BllApi.prototype = {
 				case "System.Int32":
 				case "System.UInt64":
 				case "System.Int64":
-					ctrl.value = item.Value;
-					break;
 				case "System.TimeSpan":
-					ctrl.value = item.Value; // already serialized as string
+					ctrl.value = item.Value;
 					break;
 				default:
 					ctrl.value = item.Value;
@@ -174,12 +252,11 @@ BllApi.prototype = {
 			if (e.data.Value == null && value == "null")
 				return;
 			else if (e.data.Type === "System.TimeSpan") {
-				// Basic validation: allow empty -> treat as 00:00:00; else check pattern
 				if (value && !/^\d*\.??\d{0,2}:?\d{1,2}:\d{1,2}(\.\d+)?$/.test(value) && !/^\d{1,2}:\d{1,2}:\d{1,2}(\.\d+)?$/.test(value))
-					return; // invalid pattern, ignore
+					return;
 			}
 			else if (e.data.Value != null && e.data.Value.toString() == value)
-				return;// no change
+				return;
 
 			var fValue = value.replace(/\n/g, "\r\n");
 			if (e.data.Value != fValue)

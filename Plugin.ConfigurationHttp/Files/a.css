@@ -12,24 +12,79 @@ dl.info dd>input,
 dl.info dd>input:focus {border:none;width:100%}
 dl.info dd>textarea {width:100%;min-width:100%;border:0;overflow:hidden;resize:none}
 
-div.settings > div {font-weight:bold;cursor:pointer;background-color:#A0A0A0}
-div.settings > div.D::before {content:"↓";letter-spacing:5px}
-div.settings > div.U::before {content:"↑";letter-spacing:5px}
+div.settings {border:1px solid #C0C0C0;background:#FAFAFA;padding:6px 8px;box-shadow:0 1px 2px rgba(0,0,0,.08);}
 
-div.settings > dl {border-left:9px solid #A0A0A0;margin:0}
-div.settings > dl > dt {float:left;max-width:150pt;overflow:hidden;white-space:nowrap;padding-left:6px}
+/* Category headers */
+div.settings > div {font-weight:bold;cursor:pointer;background-color:#A0A0A0;color:#222;padding:3px 6px;user-select:none;transition:background .15s ease;position:relative;}
+/* Unified arrow style matching complex-header */
+div.settings > div::before {content:'\25B6';display:inline-block;margin-right:6px;transition:transform .18s ease;}
+div.settings > div.D::before {transform:rotate(90deg);} /* Expanded */
+div.settings > div.U::before {transform:rotate(0deg);}  /* Collapsed */
+div.settings > div:first-child {margin-top:0;}
+div.settings > div:hover {background:#8F8F8F;}
+
+/* Definition list styling */
+div.settings > dl {border-left:9px solid #A0A0A0;padding:4px 0 4px 0;background:#FFF;margin:0;}
+div.settings > dl > dt {float:left;max-width:200px;overflow:hidden;white-space:nowrap;padding:3px 6px 3px 6px;}
 div.settings > dl > dt.R {color:#A0A0A0}
-div.settings > dl > dd {margin-left:226px}
+div.settings > dl > dd {margin-left:226px;padding:3px 6px 3px 0;}
 
+/* Inputs */
 div.settings > dl > dd > input,
 div.settings > dl > dd > select,
 div.settings > dl > dd > textarea {width:100%;min-width:100%;box-sizing:border-box}
+div.settings > dl > dd > textarea {width:100%;min-width:100%;box-sizing:border-box;border:1px solid #CCC;border-radius:2px;padding:2px 4px;font-size:11px;font-family:Consolas, monospace;transition:border-color .12s ease, background .12s ease;}
+div.settings > dl > dd > input:focus,
+div.settings > dl > dd > select:focus,
+div.settings > dl > dd > textarea:focus {outline:none;border-color:#888;background:#FFFFF5;}
+
 div.settings > dl > dd > textarea {resize:vertical;min-height:21px}
 
-div.settings > dl > dd > pre {margin:0;height:22px}
+div.settings > dl > dd > pre {margin:0;height:22px;padding:2px 4px;background:#F5F5F5;border:1px solid #DDD;border-radius:2px;font-size:11px;overflow:auto;}
 
 div.settings > dl > dd > input[readonly=readonly],
 div.settings > dl > dd > select[readonly=readonly],
 div.settings > dl > dd > textarea[readonly=readonly] {color:#A0A0A0}
+div.settings > dl > dd > textarea[readonly=readonly] {color:#666;background:#F5F5F5;border-color:#DDD;}
 
-div.settings > dl > dd > .C {font-weight:bold}
+div.settings > dl > dd > .C {font-weight:bold;color:#0A4D8C;}
+
+/* Hover highlight for row */
+div.settings > dl > dt:hover + dd,
+div.settings > dl > dt:hover {background:#F0F8FF;}
+
+/* Complex key override (adjusted width to align with new padding) */
+div.complex-root span.complex-key {display:inline-block;width:126px;overflow:hidden;white-space:nowrap;padding-left:6px}
+
+/* Complex object container */
+.complex-root {border:1px solid #C0C0C0;font-size:12px;background:#fafafa;margin:6px 0;}
+.complex-root + .complex-root {margin-top:6px;}
+
+/* Header ({object}) clickable area */
+.complex-root > .complex-header {cursor:pointer;background:#E6E6E6;padding:3px 8px;font-size:11px;line-height:14px;user-select:none;position:relative;border-bottom:1px solid #D0D0D0;border-radius:2px 2px 0 0;}
+.complex-root > .complex-header:hover {background:#DCDCDC;}
+.complex-root > .complex-header:active {background:#D2D2D2;}
+
+/* Expand / collapse indicator */
+.complex-root > .complex-header:before {content:'\25B6';display:inline-block;margin-right:6px;transition:transform .18s ease;}
+.complex-root > .complex-header.expanded:before {transform:rotate(90deg);}
+.complex-root > .complex-header.collapsed:before {transform:rotate(0deg);}
+
+/* Nested complex content */
+.complex-root > .complex {padding:6px 8px;background:#fff;}
+
+/* Rows inside complex object */
+.complex-row {margin:2px 0;display:flex;align-items:flex-start;}
+.complex-row .complex-key {flex:0 0 126px;font-weight:600;color:#333;}
+.complex-row input[type=text],
+.complex-row input[type=number] {width:160px;box-sizing:border-box;padding:2px 4px;font-size:11px;border:1px solid #CCC;border-radius:2px;}
+.complex-row input[readonly] {background:#F5F5F5;color:#666;border:1px solid #DDD;}
+.complex-row input[type=checkbox] {margin-top:3px;}
+
+/* Arrays */
+.complex-array {margin-left:12px;padding-left:6px;border-left:2px dotted #CCC;}
+.complex-array-item {margin:2px 0;}
+.complex-array-item pre {margin:0;font-size:11px;}
+
+/* Collapsed visual hint */
+.complex-header.collapsed {border-bottom:none;}
