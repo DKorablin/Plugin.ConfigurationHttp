@@ -111,6 +111,11 @@ BllApi.prototype = {
 				case "System.Int64":
 					result = Utils.CreateElement("INPUT", ["type", "number"], ["min", "-9223372036854775808"], ["max", "9223372036854775807"]);
 					break;
+				case "System.TimeSpan":
+					// Expected format: c (invariant) => d.hh:mm:ss.fffffff; keep as text with pattern hint
+					result = Utils.CreateElement("INPUT", ["type", "text"], ["placeholder", item.DefaultValue ? item.DefaultValue : "dd.hh:mm:ss"]);
+					result.title = "Format: d.hh:mm:ss[.fffffff]";
+					break;
 				default:
 					result = item.Editors && Array.isArray(item.Editors) && item.Editors.some(editor => editor.indexOf("System.ComponentModel.Design.MultilineStringEditor")-1)
 						? document.createElement("TEXTAREA")
@@ -150,6 +155,9 @@ BllApi.prototype = {
 				case "System.Int64":
 					ctrl.value = item.Value;
 					break;
+				case "System.TimeSpan":
+					ctrl.value = item.Value; // already serialized as string
+					break;
 				default:
 					ctrl.value = item.Value;
 					break;
@@ -165,13 +173,17 @@ BllApi.prototype = {
 			var value = e.value;
 			if (e.data.Value == null && value == "null")
 				return;
-			else if (e.data.Value != null && e.data.Value.toString() == value)
-				return;//Проверка Boolean
-			else {
-				var fValue = value.replace(/\n/g, "\r\n");
-				if (e.data.Value != fValue)
-					callback();
+			else if (e.data.Type === "System.TimeSpan") {
+				// Basic validation: allow empty -> treat as 00:00:00; else check pattern
+				if (value && !/^\d*\.??\d{0,2}:?\d{1,2}:\d{1,2}(\.\d+)?$/.test(value) && !/^\d{1,2}:\d{1,2}:\d{1,2}(\.\d+)?$/.test(value))
+					return; // invalid pattern, ignore
 			}
+			else if (e.data.Value != null && e.data.Value.toString() == value)
+				return;// no change
+
+			var fValue = value.replace(/\n/g, "\r\n");
+			if (e.data.Value != fValue)
+				callback();
 		}
 	},
 

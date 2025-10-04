@@ -65,7 +65,7 @@ namespace Plugin.ConfigurationHttp
 
 			try
 			{
-				Object objValue = TypeDescriptor.GetConverter(prop.PropertyType).ConvertFromString(value);
+				Object objValue = TypeDescriptor.GetConverter(prop.PropertyType).ConvertFromInvariantString(value);
 				prop.SetValue(settings.Settings, objValue, null);
 				objValue = prop.GetValue(settings.Settings, null);//I get the value back because the property may not change.
 				this._host.Plugins.Settings(plugin.Instance).SaveAssemblyParameter(prop.Name, objValue);

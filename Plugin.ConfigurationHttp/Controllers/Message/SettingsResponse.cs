@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Globalization;
 
 namespace Plugin.ConfigurationHttp.Controllers.Message
 {
@@ -38,12 +39,24 @@ namespace Plugin.ConfigurationHttp.Controllers.Message
 		[DataMember(EmitDefaultValue=false)]
 		public String[] Editors { get; private set; }
 
+		private static Boolean IsNullableTimeSpan(Type t)
+			=> t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>) && t.GetGenericArguments()[0] == typeof(TimeSpan);
+
 		internal SettingsResponse(PropertyInfo item, Object target)
 		{
 			this.Name = item.Name;
 			this.Type = item.PropertyType.FullName;
 			this.CanWrite = item.CanWrite;
-			this.Value = item.CanRead ? item.GetValue(target, null) : null;
+
+			Object rawValue = item.CanRead ? item.GetValue(target, null) : null;
+
+			// Force TimeSpan (and nullable TimeSpan) to serialize as constant (invariant) string for the JS UI
+			if(item.PropertyType == typeof(TimeSpan) && rawValue != null)
+				this.Value = TypeDescriptor.GetConverter(item.PropertyType).ConvertToInvariantString(rawValue);
+			else if(IsNullableTimeSpan(item.PropertyType) && rawValue != null)
+				this.Value = ((TimeSpan)rawValue).ToString("c", CultureInfo.InvariantCulture);
+			else
+				this.Value = rawValue;
 
 			DescriptionAttribute dAttr = item.GetCustomAttribute<DescriptionAttribute>();
 			if(dAttr != null)
@@ -51,7 +64,12 @@ namespace Plugin.ConfigurationHttp.Controllers.Message
 
 			DefaultValueAttribute vAttr = item.GetCustomAttribute<DefaultValueAttribute>();
 			if(vAttr != null)
-				this.DefaultValue = vAttr.Value;
+			{
+				Object def = vAttr.Value;
+				this.DefaultValue = def is TimeSpan tsDef
+					? TypeDescriptor.GetConverter(item.PropertyType).ConvertToInvariantString(tsDef)
+					: def;
+			}
 
 			ReadOnlyAttribute rAttr = item.GetCustomAttribute<ReadOnlyAttribute>();
 			if(rAttr != null)
