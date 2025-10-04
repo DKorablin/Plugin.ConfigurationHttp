@@ -16,6 +16,7 @@
 		<dependencies>
 			<group targetFramework="net20">
 				<dependency id="SAL.Flatbed" version="1.2.10" />
+				<dependency id="Portable.BouncyCastle" version="1.9.0" />
 				<dependency id="WebPush" version="1.0.12" />
 			</group>
 		</dependencies>

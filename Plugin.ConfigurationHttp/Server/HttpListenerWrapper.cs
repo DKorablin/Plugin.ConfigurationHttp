@@ -53,7 +53,7 @@ namespace Plugin.ConfigurationHttp
 			this._queue = new Queue<HttpListenerContext>();
 			this._stop = new ManualResetEvent(false);
 			this._ready = new ManualResetEvent(false);
-			this._listenerThread = new Thread(HandleRequests);
+			this._listenerThread = new Thread(this.HandleRequests);
 		}
 
 		/// <summary>Start the HTTP(s) server</summary>
