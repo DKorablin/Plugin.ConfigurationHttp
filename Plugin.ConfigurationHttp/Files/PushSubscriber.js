@@ -14,17 +14,21 @@ function PushEndpointPayload(subscription) {
 	this.auth = rAuth ? btoa(String.fromCharCode.apply(null, new Uint8Array(rAuth))) : "";
 }
 
-// Создание замыкания, с указанием серверных параметров
-// serviceWorkerUri - Ссылка на JS файла ServiceWorker'а
-// vapidKey - VAPID ключ в формате Base64Url
-// subscriberUri - Ссылка на AJAX сервис подписки на PUSH'ы
-// unsubscribeUri - Ссылка на AJAX сервис отписки на PUSH'ы
-// auto - Автоподписка сразу при загрузке формы
+// serviceWorkerUri - ServiceWorker script uri
+// vapidKey - Optional VAPID key (Base64Url). If null will be requested from server via BllApi.GetVapidPublicKey()
+// subscribeUri / unsubscribeUri - server endpoints for (un)subscription
+// auto - auto subscribe
 function PushSubscriber(serviceWorkerUri, vapidKey, subscribeUri, unsubscribeUri, auto) {
 	this.i._seviceWorkerUri = serviceWorkerUri;
-	this.i._vapidKey = vapidKey == null
-		? null
-		: Uint8Array.from(atob(vapidKey.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0));
+	this.i._vapidKey = null; // Binary Uint8Array
+	this.i._vapidKeyRaw = null; // Raw base64url string
+	this.i._loadingVapid = false;
+	this.i._pendingVapidCbs = [];
+
+	if (vapidKey) {
+		this.i._vapidKeyRaw = vapidKey;
+		this.i._vapidKey = this.ConvertVapidKey(vapidKey);
+	}
 
 	this.Async._subscribeUri = subscribeUri;
 	this.Async._unsubscribeUri = unsubscribeUri;
@@ -38,6 +42,9 @@ PushSubscriber.prototype = {
 		_isSubscribed: false,
 		_seviceWorkerUri: null,
 		_vapidKey: null,
+		_vapidKeyRaw: null,
+		_loadingVapid: false,
+		_pendingVapidCbs: [],
 
 		RegisterWorker: function () {
 			if (this._seviceWorkerUri == null) return;
@@ -86,6 +93,45 @@ PushSubscriber.prototype = {
 			if (objRequest.status == 204) return;
 			else
 				console.log("Error: Ajax.OnLoaded. Status: " + objRequest.status);
+		}
+	},
+
+	// Converts Base64Url VAPID key to Uint8Array
+	ConvertVapidKey: function (vapidKey) {
+		try {
+			return Uint8Array.from(atob(vapidKey.replace(/-/g, "+").replace(/_/g, "/")), function (c) { return c.charCodeAt(0); });
+		} catch (e) {
+			console.error("Error: ConvertVapidKey", e);
+			return null;
+		}
+	},
+
+	// Ensures _vapidKey is loaded. If not provided in ctor it requests from server via BllApi.GetVapidPublicKey()
+	EnsureVapidKey: function (callback) {
+		if (this.i._vapidKey) { callback(); return; }
+		this.i._pendingVapidCbs.push(callback);
+		if (this.i._loadingVapid) return;
+		this.i._loadingVapid = true;
+		var _this = this;
+		try {
+			var api = new BllApi(null, null);
+			api.GetVapidPublicKey(function (key) {
+				if (key) {
+					_this.i._vapidKeyRaw = key;
+					_this.i._vapidKey = _this.ConvertVapidKey(key);
+					console.log("OK: Loaded VAPID public key");
+				} else {
+					console.warn("Warn: VAPID public key not found");
+				}
+				_this.i._loadingVapid = false;
+				while (_this.i._pendingVapidCbs.length) {
+					var cb = _this.i._pendingVapidCbs.shift();
+					try { cb(); } catch (e) { console.error(e); }
+				}
+			});
+		} catch (e) {
+			this.i._loadingVapid = false;
+			console.error("Error: EnsureVapidKey", e);
 		}
 	},
 
@@ -171,22 +217,25 @@ PushSubscriber.prototype = {
 			return;
 
 		this.i.RegisterWorker();
-		var key = this.i._vapidKey;
-		navigator.serviceWorker.ready.then(function (swRegistration) {
-			swRegistration.pushManager.subscribe({
-				userVisibleOnly: true,
-				applicationServerKey: key
-			})
-				.then(function (subscription) {
-					if (subscription) {
-						var payload = new PushEndpointPayload(subscription);
-						_this.ForwardPayloadI(true, payload);
-						console.log("OK: Subscribe()");
-						_this.i._isSubscribed = true;
-					}
-				}).catch(function (err) {
-					console.log("Error: Subscribe()", err);
-				});
+		this.EnsureVapidKey(function () {
+			if (!_this.i._vapidKey) { console.error("Error: Subscribe() VAPID key missing"); return; }
+			var key = _this.i._vapidKey;
+			navigator.serviceWorker.ready.then(function (swRegistration) {
+				swRegistration.pushManager.subscribe({
+					userVisibleOnly: true,
+					applicationServerKey: key
+				})
+					.then(function (subscription) {
+						if (subscription) {
+							var payload = new PushEndpointPayload(subscription);
+							_this.ForwardPayloadI(true, payload);
+							console.log("OK: Subscribe()");
+							_this.i._isSubscribed = true;
+						}
+					}).catch(function (err) {
+						console.log("Error: Subscribe()", err);
+					});
+			});
 		});
 	},
 

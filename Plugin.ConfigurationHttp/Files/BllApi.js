@@ -66,7 +66,7 @@ BllApi.prototype = {
 						item.InstanceId = instanceId;
 						item.PluginId = pluginId;
 						item.ValueCtrl = this.CreateSettingsCtrl(item, evtPropertyChanged);
-					}
+						}
 
 			if (callback != null)
 				callback(payload);
@@ -216,5 +216,23 @@ BllApi.prototype = {
 		var request = Utils.Async.LoadAsync(ajax, (data) => _this.i.OnRawResponseI(data, callback));
 
 		this.i.SetRequestLog(request);
+	},
+
+	// Retreiving VAPID public key for web push subscription from server
+	GetVapidPublicKey: function (callback) {
+		var pluginId = "d10da6bc-77fd-4ada-8b3f-b850023e59ae";
+		this.GetPluginParams(null, pluginId, function (payload) {
+			var vapidKey = null;
+			if (payload) {
+				for (var i = 0; i < payload.length; i++) {
+					var items = payload[i].Items || [];
+					for (var j = 0; j < items.length; j++) {
+						if (items[j].Name === "VapidPublicKey") { vapidKey = items[j].Value; break; }
+					}
+					if (vapidKey) break;
+				}
+			}
+			if (callback) callback(vapidKey);
+		}, function(){}); // pass noop to avoid null callback usage in blur handler
 	}
 }

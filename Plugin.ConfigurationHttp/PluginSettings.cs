@@ -219,7 +219,7 @@ namespace Plugin.ConfigurationHttp
 		public String VapidSubject
 		{
 			get => this._vapidSubject;
-			set => this.SetField(ref this._vapidSubject, value.Trim(), nameof(this.VapidSubject));
+			set => this.SetField(ref this._vapidSubject, value?.Trim(), nameof(this.VapidSubject));
 		}
 
 		[Category("Notifications")]
@@ -237,7 +237,7 @@ namespace Plugin.ConfigurationHttp
 				}
 				return this._vapidPublicKey;
 			}
-			set => this.SetField(ref this._vapidPublicKey, value.Trim(), nameof(this.VapidPublicKey));
+			set => this.SetField(ref this._vapidPublicKey, value?.Trim(), nameof(this.VapidPublicKey));
 		}
 
 		[Category("Notifications")]
@@ -255,7 +255,7 @@ namespace Plugin.ConfigurationHttp
 				}
 				return this._vapidPrivateKey;
 			}
-			set => this.SetField(ref this._vapidPrivateKey, value.Trim(), nameof(this.VapidPrivateKey));
+			set => this.SetField(ref this._vapidPrivateKey, value?.Trim(), nameof(this.VapidPrivateKey));
 		}
 
 		[Browsable(false)]
