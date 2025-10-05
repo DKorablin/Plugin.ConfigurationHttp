@@ -57,11 +57,11 @@ div.settings > dl > dt:hover {background:#F0F8FF;}
 div.complex-root span.complex-key {display:inline-block;width:126px;overflow:hidden;white-space:nowrap;padding-left:6px}
 
 /* Complex object container */
-.complex-root {border:1px solid #C0C0C0;font-size:12px;background:#fafafa;margin:6px 0;}
+.complex-root {border:1px solid #C0C0C0;background:#fafafa;margin:6px 0;}
 .complex-root + .complex-root {margin-top:6px;}
 
 /* Header ({object}) clickable area */
-.complex-root > .complex-header {cursor:pointer;background:#E6E6E6;padding:3px 8px;font-size:11px;line-height:14px;user-select:none;position:relative;border-bottom:1px solid #D0D0D0;border-radius:2px 2px 0 0;}
+.complex-root > .complex-header {cursor:pointer;background:#E6E6E6;padding:3px 8px;line-height:14px;user-select:none;position:relative;border-bottom:1px solid #D0D0D0;border-radius:2px 2px 0 0;}
 .complex-root > .complex-header:hover {background:#DCDCDC;}
 .complex-root > .complex-header:active {background:#D2D2D2;}
 

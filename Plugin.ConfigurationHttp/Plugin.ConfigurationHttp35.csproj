@@ -100,5 +100,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Files\PushWorker.js" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\b.css" />
+    <EmbeddedResource Include="Files\Notification.js" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

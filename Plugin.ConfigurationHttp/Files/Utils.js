@@ -23,11 +23,28 @@
 
 		OnLoaded: function (objRequest, callback) {
 			if (objRequest.readyState != 4) return;
-			//if (objRequest.status != 200){
-			//	console.log("Error: Ajax.OnLoaded. Status: " + objRequest.status);
-			//} else {
-			Utils.Async.ProcessResponse("json", objRequest.responseText, callback)
-			//}
+			switch (objRequest.status) {
+				case 200: // OK
+					Utils.Async.ProcessResponse("json", objRequest.responseText, callback);
+					return;
+				case 204: // No Content
+					Utils.Async.ProcessResponse("json", null, callback);
+					return;
+				case 404: // Not Found
+					Utils.Message.ErrorMessage("The requested resource was not found (404).");
+					return;
+				case 401: // Unauthorized
+				case 403: // Forbidden
+					Utils.Message.ErrorMessage("You do not have permission to access this resource (401/403).");
+					return;
+				case 500: // Internal Server Error
+					Utils.Message.ErrorMessage("An internal server error occurred (500).");
+					return;
+				case 0://Failed to process the request.
+					Utils.Message.ErrorMessage("Failed to process the request. The connection was reset or the server dropped the connection.");
+					return;
+			}
+			throw "Unknown status code returned from server: " + objRequest.status;
 		},
 
 		ProcessResponse: function (outType, data, callback) {
@@ -141,5 +158,37 @@
 					.split("\r").join("\\'") + "');}return p.join('');");
 
 		return jso ? fn(jso) : fn;
+	},
+	Message: {
+		createMessage: (type, text) => {
+			var message = document.querySelector(".master-message");
+			if (message) {
+				message.classList.add("fade-out");
+				setTimeout(function () {
+					if (message.parentNode != null)
+						message.parentNode.removeChild(message);
+				}, 400);
+			}
+			let newMessage = document.createElement("ul");
+			newMessage.innerHTML = "<li>" + text + "</li>";
+			newMessage.classList.add("master-message");
+			newMessage.classList.add("master-message--" + type);
+			newMessage.classList.add("fade-in");
+			newMessage.style.zIndex = "1102";
+			newMessage.addEventListener("click", function () {
+				this.classList.toggle("rolled");
+			});
+			document.body.appendChild(newMessage);
+			setTimeout(function () {
+				newMessage.classList.remove("fade-in");
+				Utils.Message.messageElement = newMessage;
+			}, 800);
+		},
+		ErrorMessage: (text) => Utils.Message.createMessage("error", text),
+		RemoveMessage: () => {
+			if (!Utils.Message.messageElement)
+				return;
+			Utils.Message.messageElement.remove();
+		}
 	}
 }

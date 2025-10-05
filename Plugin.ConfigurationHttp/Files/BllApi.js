@@ -31,7 +31,7 @@ BllApi.prototype = {
 			this.SetResponseLog(data);
 
 			var payload = null;
-			if (data != "") {
+			if (data != null) {
 				payload = JSON.parse(data);
 				if (payload.responseText) {
 					alert(payload.responseText);

@@ -7,6 +7,7 @@
 	<script type="text/javascript" src="Utils.js"></script>
 	<script type="text/javascript" src="BllApi.js"></script>
 	<link rel="stylesheet" type="text/css" href="a.css" />
+	<link rel="stylesheet" type="text/css" href="b.css" />
 </head>
 <body>
 	<dl class="container">
@@ -40,7 +41,7 @@
 			if (payload == null || payload.length==0)
 				OnInstanceSelected();
 			else if (payload.Message)
-				alert(payload.Message);
+				Utils.Message.ErrorMessage(payload.Message);
 			else {
 				if (payload.length > 0) {
 					ctrl.style.display = "";
@@ -81,7 +82,7 @@
 			if (payload == null)
 				return;
 			if (payload.Message)
-				alert(payload.Message);
+				Utils.Message.ErrorMessage(payload.Message);
 			else {
 				for (var loop = 0; loop < payload.length; loop++) {
 					var option = document.createElement("OPTION");
@@ -115,7 +116,7 @@
 
 		function OnPropertySaved(payload) {
 			if (payload && payload.Message)
-				alert(payload.Message);
+				Utils.Message.ErrorMessage(payload.Message);
 			else
 				OnPluginSelected();
 		}
@@ -127,7 +128,7 @@
 				return;
 
 			if (payload.Message)
-				alert(payload.Message);
+				Utils.Message.ErrorMessage(payload.Message);
 			else {
 				for (var i = 0; i < payload.length; i++) {
 					var elCategory = document.createElement("DIV");

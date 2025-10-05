@@ -1,0 +1,54 @@
+/*Floating error popup*/
+.master-message {
+  padding: 40px 10px 10px 10px;
+  margin: 10px 0 20px 50px;
+  display: block;
+  font-weight: normal;
+  z-index: 999;
+  position: fixed;
+  top: 20px;
+  right: 15px;
+  border-radius: 5px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  box-shadow: 4px 6px 8px rgba(0, 0, 0, 0.3);
+  width: 245px;
+  transition: all 0.4s ease-in-out;
+  cursor: pointer;
+}
+@media only screen and (max-width: 850px) {
+  .master-message { width: 65%; }
+}
+.master-message li { transition: all 0.3s ease;list-style: none;margin: 0;padding:0; }
+.master-message.rolled { right: -235px; }
+@media only screen and (max-width: 850px) {
+  .master-message.rolled { right: -100%; }
+}
+.master-message.rolled li { opacity: 0; }
+.master-message--error {
+  background:#ffd6bc; /* removed image */
+  color:#363636;
+}
+.master-message--error:before {
+  content:"⚠"; /* same symbol */
+  position:absolute;
+  top:12px;
+  left:16px;
+  font-size:26px;
+  line-height:26px;
+  color:#c62828;
+  text-shadow:0 1px 2px rgba(0,0,0,.25);
+}
+.master-message--error:after {
+  content:" Error";
+  position:absolute;
+  top:16px;
+  left:46px;
+  font-size:14px;
+  font-weight:bold;
+  color:#b71c1c;
+}
+
+.master-message--information a { text-decoration: underline; }
+.master-message.fade-in { animation: flipIn 0.4s ease-in-out; transform-style: preserve-3d; backface-visibility: hidden; }
+.master-message.fade-out { transform: rotateX(180deg); transform-style: preserve-3d; backface-visibility: hidden; }
