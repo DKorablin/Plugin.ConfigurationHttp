@@ -3,7 +3,6 @@ using System.Configuration;
 using System.ServiceModel;
 using System.ServiceModel.Configuration;
 using System.ServiceModel.Description;
-using System.ServiceModel.Web;
 using System.Web.Configuration;
 using System.Web.Hosting;
 

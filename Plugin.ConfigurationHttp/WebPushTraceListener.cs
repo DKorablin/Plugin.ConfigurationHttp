@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using WebPush;
 
 namespace Plugin.ConfigurationHttp
 {
@@ -59,21 +58,21 @@ namespace Plugin.ConfigurationHttp
 			if(base.Filter != null && !base.Filter.ShouldTrace(eventCache, source, eventType, id, message, null, null, null))
 				return;
 
-			if(!this.IsPushEnabled())
+			if(!IsPushEnabled())
 				return;
 
 			if(((Int32)Plugin._settings.WebPushEventTypes >> (Int32)eventType & 0x01) == 1)
-				this.SendPushMessage(source, message);
+				SendPushMessage(source, message);
 		}
 
 		private void AnalyzeTraceData(TraceEventCache eventCache, String source, TraceEventType eventType, Int32 id, Object data)
 		{
-			if(!this.IsPushEnabled())
+			if(!IsPushEnabled())
 				return;
 
 			Exception exc = data as Exception;
 			if(exc != null && !Utils.IsFatal(exc))
-				this.SendPushMessage(exc.GetType().Name, exc.ToString());
+				SendPushMessage(exc.GetType().Name, exc.ToString());
 			else
 			{
 				String message;
@@ -96,10 +95,10 @@ namespace Plugin.ConfigurationHttp
 			}
 		}
 
-		private Boolean IsPushEnabled()
+		private static Boolean IsPushEnabled()
 			=> Plugin._settings != null && Plugin._settings.WebPush != null;
 
-		private void SendPushMessage(String title, String message)
+		private static void SendPushMessage(String title, String message)
 			=> Plugin._settings?.SendPushMessage(title, message);
 	}
 }

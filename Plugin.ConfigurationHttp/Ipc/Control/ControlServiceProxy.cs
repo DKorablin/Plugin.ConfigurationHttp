@@ -46,8 +46,7 @@ namespace Plugin.ConfigurationHttp.Ipc.Control
 			case CommunicationState.Opened:
 				try
 				{
-					Int32 hostProcessId = base.Channel.Ping(this._processId);
-					//Console.WriteLine("ClientHost Ping: HostProcessId: {0}", hostProcessId);
+					_ = base.Channel.Ping(this._processId);//hostProcessId is not used here, but can be useful for debugging.
 				} catch(FaultException exc)
 				{
 					Console.WriteLine(exc.Message);

@@ -7,7 +7,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Security.Principal;
 using System.Text;
-using Org.BouncyCastle.Asn1.Ocsp;
 using Plugin.ConfigurationHttp.UI;
 using SAL.Flatbed;
 using WebPush;
@@ -231,9 +230,9 @@ namespace Plugin.ConfigurationHttp
 			{
 				if(this._vapidPublicKey == null)
 				{
-					Utils.GenerateVapidKeys(out String publicKey, out String privateKey);
-					this.VapidPublicKey = publicKey;
-					this.VapidPrivateKey = privateKey;
+					VapidDetails vapid = VapidHelper.GenerateVapidKeys();
+					this.VapidPublicKey = vapid.PublicKey;
+					this.VapidPrivateKey = vapid.PrivateKey;
 				}
 				return this._vapidPublicKey;
 			}
@@ -249,9 +248,9 @@ namespace Plugin.ConfigurationHttp
 			{
 				if(this._vapidPrivateKey == null)
 				{
-					Utils.GenerateVapidKeys(out String publicKey, out String privateKey);
-					this.VapidPublicKey = publicKey;
-					this.VapidPrivateKey = privateKey;
+					VapidDetails vapid = VapidHelper.GenerateVapidKeys();
+					this.VapidPublicKey = vapid.PublicKey;
+					this.VapidPrivateKey = vapid.PrivateKey;
 				}
 				return this._vapidPrivateKey;
 			}
@@ -354,14 +353,8 @@ namespace Plugin.ConfigurationHttp
 
 				using(WebPushClient client = new WebPushClient())
 				{
-					client.SetVapidDetails(this.VapidSubject, this.VapidPublicKey, this.VapidPrivateKey);
-
-					Dictionary<String, Object> options = new Dictionary<String, Object>()
-					{
-						{ "TTL", this.WebPushTtl },
-					}
-				;
-					client.SendNotification(subscription, payload: json, options: options);
+					VapidDetails vapid = new VapidDetails(this.VapidSubject, this.VapidPublicKey, this.VapidPrivateKey);
+					client.SendNotification(subscription, payload: json, ttl: this.WebPushTtl, vapidDetails: vapid);
 				}
 			} catch(WebPushException exc)
 			{

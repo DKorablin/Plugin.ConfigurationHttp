@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 [assembly: System.CLSCompliant(true)]
 
 #if NETCOREAPP
-[assembly: AssemblyMetadata("ProjectUrl", "https://dkorablin.ru/project/Default.aspx?File=118")]
+[assembly: AssemblyMetadata("ProjectUrl", "https://github.com/DKorablin/Plugin.ConfigurationHttp")]
 #else
 
 [assembly: AssemblyDescription("Web UI for Plugins configuration")]
-[assembly: AssemblyCopyright("Copyright © Danila Korablin 2019-2024")]
+[assembly: AssemblyCopyright("Copyright © Danila Korablin 2019-2025")]
 
 #endif
 /*

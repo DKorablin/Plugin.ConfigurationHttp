@@ -100,10 +100,7 @@ namespace Plugin.ConfigurationHttp
 				{
 					result.Payload = st.Payload;
 					result.ContentType = st.ContentType;
-				} /*else if(localPath == "/favicon.ico")
-				{
-					System.Drawing.Icon.ExtractAssociatedIcon()
-				}*/
+				}
 			}
 
 			if(result.Payload == null)

@@ -15,7 +15,7 @@ namespace Plugin.ConfigurationHttp
 	internal class ServiceFactory : IDisposable
 	{
 		//TODO: Upgrade to ConcurrentDictionary
-		public static Dictionary<Int32, PluginsServiceProxy> Proxies = new Dictionary<Int32, PluginsServiceProxy>();
+		public static readonly Dictionary<Int32, PluginsServiceProxy> Proxies = new Dictionary<Int32, PluginsServiceProxy>();
 
 		private readonly Plugin _plugin;
 		private IpcSingleton _ipc;
@@ -100,7 +100,7 @@ namespace Plugin.ConfigurationHttp
 			}
 		}
 
-		private Boolean TryCreateControlProxy()
+		private void TryCreateControlProxy()
 		{
 			try
 			{
@@ -109,7 +109,6 @@ namespace Plugin.ConfigurationHttp
 				this._controlProxy = new ControlServiceProxy(this.BaseControlAddress, "Host");
 				this._controlProxy.Open();
 				this._controlProxy.CreateClientHost();
-				return true;
 			} catch(EndpointNotFoundException exc)
 			{
 				exc.Data.Add(nameof(this._hostUrl), this._hostUrl);
@@ -134,7 +133,7 @@ namespace Plugin.ConfigurationHttp
 					{
 						this._controlHost = Ipc.ServiceConfiguration.Instance.Create<ControlService, IControlService>(this.BaseControlAddress, "Host");
 						this._controlHost.Open();
-						this._controlHost.Faulted += this.ControlHost_Faulted;
+						this._controlHost.Faulted += (sender, e) => Plugin.Trace.TraceEvent(TraceEventType.Error, 10, "ControlHost is in faulted state");
 					} else
 					{
 						this.TryCreateControlProxy();
@@ -215,9 +214,6 @@ namespace Plugin.ConfigurationHttp
 			sw.Stop();
 			Plugin.Trace.TraceEvent(TraceEventType.Verbose, 7, "Destroyed. State: {0} Elapsed: {1} ", state, sw.Elapsed);
 		}
-
-		private void ControlHost_Faulted(Object sender, EventArgs e)
-			=> Plugin.Trace.TraceEvent(TraceEventType.Error, 10, "ControlHost is in faulted state");
 
 		private void TimerCallback(Object state)
 		{

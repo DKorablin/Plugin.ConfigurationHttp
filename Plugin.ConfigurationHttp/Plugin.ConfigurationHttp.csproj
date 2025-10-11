@@ -1,0 +1,75 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFrameworks>net48;net8.0-windows</TargetFrameworks>
+		<UseWindowsForms>true</UseWindowsForms>
+		<OutputType>Library</OutputType>
+		<RootNamespace>Plugin.ConfigurationHttp</RootNamespace>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<Configuration>Debug</Configuration>
+		<Deterministic>false</Deterministic>
+		<GenerateDocumentationFile>False</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);</NoWarn>
+		<DefineConstants>$(DefineConstants)</DefineConstants>
+	</PropertyGroup>
+
+	<!--nuspec-->
+	<PropertyGroup>
+		<PackageId>AlphaOmega.SAL.Plugin.ConfigurationHttp</PackageId>
+		<Version>$(Version)</Version>
+		<Title>HTTP(s) configuration plugin for service based applications</Title>
+		<Description>Configuration plugin using built in HTTP(s) server to configure service host applications on the runtime</Description>
+		<Authors>Danila Korablin</Authors>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageReadmeFile>docs\README.md</PackageReadmeFile>
+		<RepositoryUrl>https://github.com/DKorablin/Plugin.ConfigurationHttp</RepositoryUrl>
+		<PackageTags>SAL plugin server http configuration</PackageTags>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\README.md" Pack="true" PackagePath="\docs" />
+	</ItemGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<Optimize>true</Optimize>
+		<PublishSingleFile>true</PublishSingleFile>
+		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AlphaOmega.PushSharp.WebPush" />
+		<PackageReference Include="Portable.BouncyCastle" />
+		<PackageReference Include="SAL.Flatbed" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+		<Reference Include="System.Configuration" />
+		<Reference Include="System.ServiceModel" />
+		<Reference Include="System.ServiceModel.Web" />
+		<Reference Include="System.Web" />
+		<Reference Include="System.Web.Extensions" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Remove="Files\a.css" />
+		<None Remove="Files\b.css" />
+		<None Remove="Files\BllApi.js" />
+		<None Remove="Files\favicon.ico" />
+		<None Remove="Files\Index.html" />
+		<None Remove="Files\Notification.js" />
+		<None Remove="Files\PushSubscriber.js" />
+		<None Remove="Files\PushWorker.js" />
+		<None Remove="Files\Utils.js" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="Files\a.css" />
+		<EmbeddedResource Include="Files\b.css" />
+		<EmbeddedResource Include="Files\BllApi.js" />
+		<EmbeddedResource Include="Files\favicon.ico" />
+		<EmbeddedResource Include="Files\Index.html" />
+		<EmbeddedResource Include="Files\Notification.js" />
+		<EmbeddedResource Include="Files\PushSubscriber.js" />
+		<EmbeddedResource Include="Files\PushWorker.js" />
+		<EmbeddedResource Include="Files\Utils.js" />
+	</ItemGroup>
+</Project>

@@ -31,14 +31,13 @@ namespace Plugin.ConfigurationHttp.Ipc
 
 		public void Mutex<T>(T state, Action<T> func)
 		{
-			//System.Diagnostics.Debugger.Launch();
-			String mutexId = this._name;// String.Format("Global\\{{{0}}}", name);
+			String mutexId = this._name;
 
 			MutexAccessRule rules = new MutexAccessRule(this._identity, MutexRights.FullControl, AccessControlType.Allow);
 			MutexSecurity security = new MutexSecurity();
 			security.AddAccessRule(rules);
 
-			using(Mutex mutext = new Mutex(false, mutexId, out Boolean isNew, security))
+			using(Mutex mutext = new Mutex(false, mutexId, out Boolean _, security))
 			{
 				Boolean hasHandle = false;
 				try
@@ -64,7 +63,7 @@ namespace Plugin.ConfigurationHttp.Ipc
 
 		public void EventWaitHandle<T>(T state, Action<T> func)
 		{
-			String ewhId = this._name; //String.Format("Global\\{{{0}}}", name);
+			String ewhId = this._name;
 
 			EventWaitHandleAccessRule rules = new EventWaitHandleAccessRule(this._identity, EventWaitHandleRights.FullControl, AccessControlType.Allow);
 			EventWaitHandleSecurity security = new EventWaitHandleSecurity();
@@ -93,7 +92,7 @@ namespace Plugin.ConfigurationHttp.Ipc
 
 		public void Semaphore<T>(Int32 initialCount, Int32 maximumCount, T state, Action<T> func)
 		{
-			String semaphoreId = this._name; //String.Format("Global\\{{{0}}}", name);
+			String semaphoreId = this._name;
 
 			SemaphoreAccessRule rules = new SemaphoreAccessRule(this._identity, SemaphoreRights.FullControl, AccessControlType.Allow);
 			SemaphoreSecurity security = new SemaphoreSecurity();
