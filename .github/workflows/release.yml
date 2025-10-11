@@ -45,7 +45,7 @@ jobs:
       with:
         path: ~/.nuget/packages
         # Create a new cache when packages.lock.json changes
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/packages.lock.json') }}
         # If the exact key doesn't exist, use the most recent cache for this OS
         restore-keys: |
           ${{ runner.os }}-nuget-
@@ -89,7 +89,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/packages.lock.json') }}
         restore-keys: |
           ${{ runner.os }}-nuget-
     - name: Setup MSBuild
