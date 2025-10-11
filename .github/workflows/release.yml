@@ -100,7 +100,7 @@ jobs:
       run: >
         msbuild ${{env.SolutionName}}.sln
         /p:Configuration=Release
-        /p:OutputPath="${{github.workspace}}\bin\`$(TargetFramework)"
+        /p:ArtifactsDir="${{github.workspace}}\bin"
         /p:GenerateDocumentationFile=true
         /p:SignAssembly=true
         /p:Version=${{needs.version.outputs.new_version}}
