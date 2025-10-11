@@ -27,6 +27,10 @@ env:
   NuGetPackageSourceCredentials_github_DKorablin: Username=${{github.actor}};Password=${{secrets.DEPLOYMENT_TOKEN}}
   DotNetVersion: 8.0.x
 
+defaults:
+  run:
+    shell: pwsh
+
 jobs:
   test_net_windows:
     name: Testing .NET (Windows)
@@ -109,7 +113,6 @@ jobs:
       run: |
         echo "Listing files in the release directory:"
         ls ${{github.workspace}}\bin -Recurse
-      shell: pwsh
     - name: Finding portable executables to sign
       id: find_binaries
       run: |
@@ -122,7 +125,6 @@ jobs:
         echo "files_to_sign<<EOF" >> $env:GITHUB_OUTPUT
         echo $multiLineString >> $env:GITHUB_OUTPUT
         echo "EOF" >> $env:GITHUB_OUTPUT
-      shell: pwsh
     - name: Signing portable executables
       uses: dlemstra/code-sign-action@v1
       with:
@@ -142,51 +144,58 @@ jobs:
         /p:SymbolPackageFormat=snupkg
     - name: Deploying package to GitHub
       run: dotnet nuget push ${{github.workspace}}\bin\nupkg\ --skip-duplicate --api-key ${{secrets.GITHUB_TOKEN}} --source https://nuget.pkg.github.com/DKorablin/index.json
-    - name: Deploying artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{needs.detect_frameworks.outputs.net_version}}
-        path: ${{github.workspace}}\bin\*
-        if-no-files-found: error
-
-  deploy_release:
-    name: Deploying release
-    needs: [version, build_net]
-    runs-on: ubuntu-latest
-    steps:
-    - name: Extracting all artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: bin
     - name: Organize Artifacts into Plugin subfolders
       # This step creates a "Plugin" folder inside each artifact directory and moves all content into it.
       run: |
-        cd ${{github.workspace}}/bin
-        for dir in */; do
-          dir_name="${dir%/}"
-          mkdir "$dir_name/Plugin"
-          # Use a subshell and a for loop for a more compatible way to move files.
-          (
-            cd "$dir_name"
-            shopt -s dotglob
-            for item in *; do
-              if [[ "$item" != "Plugin" ]]; then
-                mv -- "$item" "Plugin/"
-              fi
-            done
-          )
-        done
+        Set-Location -Path "${{github.workspace}}/bin"
+        $frameworkDirs = Get-ChildItem -Directory
+
+        # Loop through each framework directory
+        foreach ($dir in $frameworkDirs) {
+          Write-Host "Processing directory: $($dir.Name)"
+
+          # 1. Create the new 'Plugin' subfolder
+          $pluginFolderPath = Join-Path -Path $dir.FullName -ChildPath "Plugin"
+          New-Item -ItemType Directory -Path $pluginFolderPath
+
+          # 2. Get all items (including hidden files) inside the framework folder
+          $itemsToMove = Get-ChildItem -Path $dir.FullName -Force
+
+          # 3. Move each item into the new 'Plugin' folder
+          foreach ($item in $itemsToMove) {
+            # Make sure not to move the 'Plugin' folder into itself
+            if ($item.Name -ne "Plugin") {
+              Move-Item -Path $item.FullName -Destination $pluginFolderPath
+            }
+          }
+        }
     # This step query the latest version of SAL Flatbed application to store executable files inside current release
     - name: Get latest Flatbed.Dialog.Lite release version
       id: get_flatbed_release
       run: |
-        LATEST_VERSION=$(curl -s -H "Authorization: token ${{secrets.DEPLOYMENT_TOKEN}}" "https://api.github.com/repos/DKorablin/Flatbed.Dialog.Lite/releases/latest" | jq -r .tag_name)
-        if [ "$LATEST_VERSION" = "null" ] || [ -z "$LATEST_VERSION" ]; then
-          echo "Error: Could not find the latest release for DKorablin/Flatbed.Dialog.Lite."
+        $headers = @{
+          "Authorization" = "token ${{ secrets.DEPLOYMENT_TOKEN }}"
+          "Accept"        = "application/vnd.github.v3+json"
+        }
+        $apiUrl = "https://api.github.com/repos/DKorablin/Flatbed.Dialog.Lite/releases/latest"
+
+        try {
+          # Invoke-RestMethod automatically parses the JSON response into an object
+          $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers
+          $latestVersion = $response.tag_name
+
+          if ([string]::IsNullOrEmpty($latestVersion)) {
+            Write-Error "Error: The latest release for DKorablin/Flatbed.Dialog.Lite does not have a valid tag name."
+            exit 1
+          } else {
+            echo "latest_version=$latestVersion" >> $env:GITHUB_OUTPUT
+            Write-Host "Successfully found latest version: $latestVersion"
+          }
+        } catch {
+          # This block will catch API errors (like 404 Not Found) or network issues
+          Write-Error "An error occurred while fetching the release information: $_"
           exit 1
-        else
-          echo "latest_version=$LATEST_VERSION" >> $GITHUB_OUTPUT
-        fi
+        }
     - name: Downloading Flatbed.Dialog.Lite latest versions
       uses: dsaltares/fetch-gh-release-asset@master
       with:
@@ -194,46 +203,69 @@ jobs:
         regex: true
         file: Flatbed.Dialog.Lite.*.zip
         token: ${{secrets.DEPLOYMENT_TOKEN}}
+    - name: Listing output directory
+      run: |
+        echo "Listing files in the release directory:"
+        ls ${{github.workspace}}\bin -Recurse
     # After that we need to extract all files related to SAL executable into bin folder for specific build
     - name: Dynamically extract assets into framework folders
       shell: bash
       run: |
-        # Change to the directory containing the build output framework folders
-        cd ${{github.workspace}}/bin
-        
-        # Loop through each framework directory (e.g., net48/, net8.0-windows/)
-        for dir in */; do
-          FRAMEWORK="${dir%/}" # Get the directory name without the trailing slash
-          echo "-----> Processing framework: $FRAMEWORK"
-          
-          # Construct the expected asset filename based on the framework
-          ASSET_FILENAME="Flatbed.Dialog.Lite_${{ steps.get_flatbed_release.outputs.latest_version }}_${FRAMEWORK}.zip"
-          ASSET_FILE_PATH="${{github.workspace}}/$ASSET_FILENAME"
-          
-          echo "Looking for asset file: $ASSET_FILE_PATH"
-          
+        # Get all the framework-specific subdirectories in the bin folder
+        $frameworkDirs = Get-ChildItem -Path "${{github.workspace}}/bin" -Directory
+
+        # Loop through each framework directory
+        foreach ($dir in $frameworkDirs) {
+          $frameworkName = $dir.Name
+          Write-Host "----- Processing framework: $frameworkName -----"
+
+          # Construct the expected asset filename and its full path
+          $assetFilename = "Flatbed.Dialog.Lite_${{ steps.get_flatbed_release.outputs.latest_version }}_${frameworkName}.zip"
+          $assetFilePath = Join-Path -Path "${{github.workspace}}" -ChildPath $assetFilename
+
+          Write-Host "Looking for asset file: $assetFilePath"
+
           # Check if the corresponding zip file was downloaded
-          if [ -f "$ASSET_FILE_PATH" ]; then
-            echo "Asset found. Extracting to './$dir'..."
-            # Unzip the asset into its corresponding framework folder
-            unzip -o "$ASSET_FILE_PATH" -d "$dir"
-            
-            echo "Cleaning up downloaded zip file..."
-            rm "$ASSET_FILE_PATH"
-          else
-            echo "::warning::Asset file '$ASSET_FILENAME' not found. Skipping extraction for this framework."
-          fi
-          echo "-----> Finished processing framework: $FRAMEWORK"
-        done
+          if (Test-Path -Path $assetFilePath -PathType Leaf) {
+            Write-Host "Asset found. Extracting to '$($dir.FullName)'..."
+
+            # Unzip the asset into its corresponding framework folder, overwriting if necessary
+            Expand-Archive -Path $assetFilePath -DestinationPath $dir.FullName -Force
+
+            Write-Host "Cleaning up downloaded zip file..."
+            Remove-Item -Path $assetFilePath
+          }
+          else {
+            # Output a warning that GitHub Actions will highlight in the logs
+            Write-Warning "Asset file '$assetFilename' not found. Skipping extraction for this framework."
+          }
+
+          Write-Host "----- Finished processing framework: $frameworkName -----"
+        }
     # After SAL executables are also packed inside bin folder we need to pack all of them into separate release assets
     - name: Zipping individual artifacts
       run: |
-        # Packing each subdirectory into different release asset
-        cd ${{github.workspace}}/bin
-        for dir in */; do
-          dir_name="${dir%/}"
-          (cd "$dir_name" && zip -qq -r "../${{env.SolutionName}}_v${{needs.version.outputs.new_version}}_${dir_name}.zip" .)
-        done
+        # Get all the framework-specific subdirectories in the bin folder
+        $frameworkDirs = Get-ChildItem -Path "${{github.workspace}}/bin" -Directory
+
+        # Loop through each framework directory to create a zip file from its contents
+        foreach ($dir in $frameworkDirs) {
+          $dirName = $dir.Name
+          Write-Host "Zipping contents of directory: $dirName"
+
+          # Construct the name for the output zip file
+          $zipFileName = "${{env.SolutionName}}_v${{needs.version.outputs.new_version}}_${dirName}.zip"
+      
+          # The destination for the zip file is the parent 'bin' directory
+          $destinationPath = Join-Path -Path $dir.Parent.FullName -ChildPath $zipFileName
+
+          # The source path is all content (*) inside the directory. This ensures
+          # the parent folder itself isn't included in the zip, matching the original script's behavior.
+          $sourceContentPath = Join-Path -Path $dir.FullName -ChildPath "*"
+
+          # Create the zip archive, overwriting if it already exists
+          Compress-Archive -Path $sourceContentPath -DestinationPath $destinationPath -Force
+        }
       working-directory: ${{github.workspace}}/bin
     - name: Deploying GitHub release
       uses: ncipollo/release-action@v1
