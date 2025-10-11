@@ -94,9 +94,11 @@ jobs:
           ${{ runner.os }}-nuget-
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
+    - name: Restore
+      run: msbuild ${{env.SolutionName}}.sln /t:Restore
     - name: Build multi-target project
       run: >
-        msbuild ${{ env.SolutionName }}.sln
+        msbuild ${{env.SolutionName}}.sln
         /p:Configuration=Release
         /p:BaseOutputPath="${{github.workspace}}\bin\"
         /p:GenerateDocumentationFile=true
