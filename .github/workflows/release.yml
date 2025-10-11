@@ -83,8 +83,6 @@ jobs:
         encodedString: ${{secrets.SIGN_ASM_KEY}}
     - uses: actions/checkout@v4
  
-    - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: ${{env.DotNetVersion}}
     - name: Caching NuGet packages
@@ -94,8 +92,8 @@ jobs:
         key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
         restore-keys: |
           ${{ runner.os }}-nuget-
-    - name: Restore
-      run: dotnet restore
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
     - name: Build multi-target project
       run: >
         msbuild ${{ env.SolutionName }}.sln
