@@ -96,8 +96,15 @@ jobs:
           ${{ runner.os }}-nuget-
     - name: Restore
       run: dotnet restore
-    - name: Building multi-target project
-      run: dotnet build ${{env.SolutionName}}\${{env.SolutionName}}.csproj --configuration Release --no-restore /p:BaseOutputPath="${{github.workspace}}\bin\" /p:DocumentationFile="${{github.workspace}}\bin\${{env.SolutionName}}.xml" /p:SignAssembly=true /p:Version=${{needs.version.outputs.new_version}} /p:AssemblyOriginatorKeyFile="${{steps.sign_key_file.outputs.filePath}}"
+    - name: Build multi-target project
+      run: >
+        msbuild ${{ env.SolutionName }}.sln
+        /p:Configuration=Release
+        /p:BaseOutputPath="${{github.workspace}}\bin\"
+        /p:GenerateDocumentationFile=true
+        /p:SignAssembly=true
+        /p:Version=${{needs.version.outputs.new_version}}
+        /p:AssemblyOriginatorKeyFile="${{steps.sign_key_file.outputs.filePath}}"
     - name: Listing release directory
       run: |
         echo "Listing files in the release directory:"
