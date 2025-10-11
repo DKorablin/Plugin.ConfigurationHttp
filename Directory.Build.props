@@ -3,8 +3,8 @@
 		<Version>1.0.0.0</Version>
 	</PropertyGroup>
 	<PropertyGroup>
-		<BaseOutputPath>..\..\bin\$(SolutionName)</BaseOutputPath>
-		<OutputPath>..\..\bin\$(SolutionName)</OutputPath>
+		<OutputPath>..\..\bin\$(SolutionName)\$(TargetFramework)</OutputPath>
+		<AppendTargetFrameworkToOutputPath>False</AppendTargetFrameworkToOutputPath>
 		<BaseIntermediateOutputPath>$(MSBuildProjectDirectory)\..\..\obj\$(MSBuildProjectName)</BaseIntermediateOutputPath>
 	</PropertyGroup>
 </Project>

@@ -38,7 +38,9 @@
 	<ItemGroup>
 		<PackageReference Include="AlphaOmega.PushSharp.WebPush" />
 		<PackageReference Include="Portable.BouncyCastle" />
-		<PackageReference Include="SAL.Flatbed" />
+		<PackageReference Include="SAL.Flatbed">
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net48'">

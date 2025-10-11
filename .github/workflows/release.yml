@@ -100,20 +100,20 @@ jobs:
       run: >
         msbuild ${{env.SolutionName}}.sln
         /p:Configuration=Release
-        /p:BaseOutputPath="${{github.workspace}}\bin\"
+        /p:OutputPath="${{github.workspace}}\bin\$(TargetFramework)"
         /p:GenerateDocumentationFile=true
         /p:SignAssembly=true
         /p:Version=${{needs.version.outputs.new_version}}
         /p:AssemblyOriginatorKeyFile="${{steps.sign_key_file.outputs.filePath}}"
-    - name: Listing release directory
+    - name: Listing output directory
       run: |
         echo "Listing files in the release directory:"
-        ls ${{github.workspace}}\bin\Release -Recurse
+        ls ${{github.workspace}}\bin -Recurse
       shell: pwsh
     - name: Finding portable executables to sign
       id: find_binaries
       run: |
-        $filePaths = Get-ChildItem -Path "${{github.workspace}}\bin\Release" -Recurse -Include "${{ env.SolutionName }}.dll" | ForEach-Object { $_.FullName }
+        $filePaths = Get-ChildItem -Path "${{github.workspace}}\bin" -Recurse -Include "${{ env.SolutionName }}.dll" | ForEach-Object { $_.FullName }
         $multiLineString = $filePaths -join "`n"
 
         echo "Found files to sign:"
@@ -139,7 +139,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{needs.detect_frameworks.outputs.net_version}}
-        path: ${{github.workspace}}/bin/Release/*
+        path: ${{github.workspace}}\bin\*
         if-no-files-found: error
 
   deploy_release:
