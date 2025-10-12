@@ -25,6 +25,23 @@
 		</AssemblyAttributes>
 	</ItemGroup>
 
+	<!--nuspec-->
+	<PropertyGroup>
+		<PackageId>AlphaOmega.SAL.Plugin.ConfigurationHttp</PackageId>
+		<Version>$(Version)</Version>
+		<Title>HTTP(s) configuration plugin for service based applications</Title>
+		<Description>Configuration plugin using built in HTTP(s) server to configure service host applications on the runtime</Description>
+		<Authors>Danila Korablin</Authors>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageReadmeFile>docs\README.md</PackageReadmeFile>
+		<RepositoryUrl>https://github.com/DKorablin/Plugin.ConfigurationHttp</RepositoryUrl>
+		<PackageTags>SAL plugin server http configuration</PackageTags>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\README.md" Pack="true" PackagePath="\docs" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<PackageReference Include="AlphaOmega.PushSharp.WebPush" />
 		<PackageReference Include="Portable.BouncyCastle" />
