@@ -174,7 +174,7 @@ jobs:
       id: get_flatbed_release
       run: |
         $headers = @{
-          "Authorization" = "token ${{ secrets.DEPLOYMENT_TOKEN }}"
+          "Authorization" = "Bearer ${{secrets.DEPLOYMENT_TOKEN}}"
           "Accept"        = "application/vnd.github.v3+json"
         }
         $apiUrl = "https://api.github.com/repos/DKorablin/Flatbed.Dialog.Lite/releases/latest"
@@ -205,7 +205,7 @@ jobs:
             $destinationPath = Join-Path -Path "${{github.workspace}}/bin" -ChildPath $asset.name
             Write-Host "Downloading $($asset.browser_download_url)..."
             # Use Invoke-WebRequest to download the file
-            Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $destinationPath
+            Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $destinationPath -Headers $headers
             Write-Host "Successfully downloaded to $destinationPath"
           }
         } catch {
