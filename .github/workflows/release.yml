@@ -132,10 +132,22 @@ jobs:
         password: '${{secrets.SIGN_PE_PASSWORD}}'
         recursive: false
         files: ${{steps.find_binaries.outputs.files_to_sign}}
+    - name: Creating NuGet package
+      run: >
+        dotnet pack ${{ env.SolutionName }}.sln --no-build --no-restore -o ${{github.workspace}}\nupkg
+        /p:ArtifactsDir="${{github.workspace}}\bin"
+        /p:PackageVersion=${{needs.version.outputs.new_version}}
+        /p:IncludeSymbols=true
+        /p:DebugType=Portable
+        /p:EmbedUntrackedSources=true
+        /p:PublishRepositoryUrl=true
+        /p:SymbolPackageFormat=snupkg
+    - name: Deploying package to GitHub
+      run: dotnet nuget push ${{github.workspace}}\nupkg\ --skip-duplicate --api-key ${{secrets.GITHUB_TOKEN}} --source https://nuget.pkg.github.com/DKorablin/index.json
     - name: Organize Artifacts into Plugin subfolders
       # This step creates a "Plugin" folder inside each artifact directory and moves all content into it.
       run: |
-        Set-Location -Path "${{github.workspace}}/bin"
+        Set-Location -Path "${{github.workspace}}\bin"
         $frameworkDirs = Get-ChildItem -Directory
 
         # Loop through each framework directory
@@ -266,18 +278,6 @@ jobs:
         artifactErrorsFailBuild: true
         generateReleaseNotes: true
         token: ${{secrets.DEPLOYMENT_TOKEN}}
-    - name: Creating NuGet package
-      run: >
-        dotnet pack ${{ env.SolutionName }}.sln --no-build --no-restore -o ${{github.workspace}}\bin\nupkg
-        /p:ArtifactsDir="${{github.workspace}}\bin"
-        /p:PackageVersion=${{needs.version.outputs.new_version}}
-        /p:IncludeSymbols=true
-        /p:DebugType=Portable
-        /p:EmbedUntrackedSources=true
-        /p:PublishRepositoryUrl=true
-        /p:SymbolPackageFormat=snupkg
-    - name: Deploying package to GitHub
-      run: dotnet nuget push ${{github.workspace}}\bin\nupkg\ --skip-duplicate --api-key ${{secrets.GITHUB_TOKEN}} --source https://nuget.pkg.github.com/DKorablin/index.json
 
   failure_cleanup:
     name: Remove version tag on failure
