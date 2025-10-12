@@ -40,7 +40,6 @@
 		<None Remove="Files\BllApi.js" />
 		<None Remove="Files\favicon.ico" />
 		<None Remove="Files\Index.html" />
-		<None Remove="Files\Notification.js" />
 		<None Remove="Files\PushSubscriber.js" />
 		<None Remove="Files\PushWorker.js" />
 		<None Remove="Files\Utils.js" />
@@ -52,7 +51,6 @@
 		<EmbeddedResource Include="Files\BllApi.js" />
 		<EmbeddedResource Include="Files\favicon.ico" />
 		<EmbeddedResource Include="Files\Index.html" />
-		<EmbeddedResource Include="Files\Notification.js" />
 		<EmbeddedResource Include="Files\PushSubscriber.js" />
 		<EmbeddedResource Include="Files\PushWorker.js" />
 		<EmbeddedResource Include="Files\Utils.js" />
