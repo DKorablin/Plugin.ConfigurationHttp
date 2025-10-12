@@ -189,7 +189,7 @@ jobs:
       with:
         repo: DKorablin/Flatbed.Dialog.Lite
         regex: true
-        file: Flatbed.Dialog.Lite.*.zip
+        file: ".*\\.zip"
         target: ${{github.workspace}}\bin
         token: ${{secrets.DEPLOYMENT_TOKEN}}
     - name: Listing output directory
@@ -235,10 +235,10 @@ jobs:
       shell: bash
       run: |
         # Packing each subdirectory into different release asset
-        cd ${{github.workspace}}/bin
-        for dir in */; do
-          dir_name="${dir%/}"
-          (cd "$dir_name" && zip -qq -r "../${{env.SolutionName}}_v${{needs.version.outputs.new_version}}_${dir_name}.zip" .) 
+        cd ${{github.workspace}}\bin
+        for dir in *\; do
+          dir_name="${dir%\}"
+          (cd "$dir_name" && zip -qq -r "..\${{env.SolutionName}}_v${{needs.version.outputs.new_version}}_${dir_name}.zip" .) 
       working-directory: ${{github.workspace}}\bin
     - name: Deploying GitHub release
       uses: ncipollo/release-action@v1
