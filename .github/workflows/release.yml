@@ -208,10 +208,10 @@ jobs:
             $requiredAssetFilename = "Flatbed.Dialog.Lite_${latestVersion}_${frameworkName}.zip"
             Write-Host "Searching for required asset: $requiredAssetFilename"
 
-            $assetToDownload = $release.assets | Where-Object { $_.name -eq $requiredAssetFilename }
+            $assetToDownload = $response.assets | Where-Object { $_.name -eq $requiredAssetFilename }
 
             if ($null -eq $assetToDownload) {
-              Write-Error "FATAL: The required asset '$requiredAssetFilename' was not found in release '$latestVersion'."
+              Write-Error "The required asset '$requiredAssetFilename' was not found in release '$latestVersion'."
               exit 1
             }
 
