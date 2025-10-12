@@ -34,6 +34,7 @@ env:
   SolutionName: ${{github.event.repository.name}}
   NuGetPackageSourceCredentials_github_DKorablin: Username=${{github.actor}};Password=${{secrets.DEPLOYMENT_TOKEN}}
   DotNetVersion: ${{github.event.inputs.dotNetVersion || '8.0.x'}}
+  ArtifactsDir: ${{github.workspace}}\bin
 
 defaults:
   run:
@@ -112,7 +113,7 @@ jobs:
       run: >
         msbuild ${{env.SolutionName}}.sln
         /p:Configuration=Release
-        /p:ArtifactsDir="${{github.workspace}}\bin"
+        /p:ArtifactsDir="${{env.ArtifactsDir}}"
         /p:GenerateDocumentationFile=true
         /p:SignAssembly=true
         /p:Version=${{needs.version.outputs.new_version}}
@@ -120,7 +121,7 @@ jobs:
     - name: Finding portable executables to sign
       id: find_binaries
       run: |
-        $filePaths = Get-ChildItem -Path "${{github.workspace}}\bin" -Recurse -Include "${{ env.SolutionName }}.dll" | ForEach-Object { $_.FullName }
+        $filePaths = Get-ChildItem -Path "${{env.ArtifactsDir}}" -Recurse -Include "${{env.SolutionName}}.dll" | ForEach-Object { $_.FullName }
         $multiLineString = $filePaths -join "`n"
 
         echo "Found files to sign:"
@@ -138,8 +139,8 @@ jobs:
         files: ${{steps.find_binaries.outputs.files_to_sign}}
     - name: Creating NuGet package
       run: >
-        dotnet pack ${{ env.SolutionName }}.sln --no-build --no-restore -o ${{github.workspace}}\nupkg
-        /p:ArtifactsDir="${{github.workspace}}\bin"
+        dotnet pack ${{env.SolutionName}}.sln --no-build --no-restore -o ${{github.workspace}}\nupkg
+        /p:ArtifactsDir="${{env.ArtifactsDir}}"
         /p:PackageVersion=${{needs.version.outputs.new_version}}
         /p:IncludeSymbols=true
         /p:DebugType=Portable
@@ -154,19 +155,19 @@ jobs:
       run: |
         .\.github\scripts\Download-ReleaseAssets.ps1 `
             -GitHubToken ${{secrets.DEPLOYMENT_TOKEN}} `
-            -BinDirectory "${{github.workspace}}\bin"
+            -BinDirectory "${{env.ArtifactsDir}}"
     # After that we need to extract all files related to executable into bin folder for specific build
     - name: Extract Dependencies and Zip Release Artifacts
       run: |
         .\.github\scripts\Files-OrganizeRelease.ps1 `
-          -BinDirectory "${{github.workspace}}\bin" `
+          -BinDirectory "${{env.ArtifactsDir}}" `
           -DependencyVersion "${{steps.get_flatbed_release.outputs.latest_version}}" `
           -SolutionName "${{env.SolutionName}}" `
           -ReleaseVersion "${{needs.version.outputs.new_version}}"
     - name: Publish GitHub Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: ${{github.workspace}}\bin\*.zip
+        artifacts: ${{env.ArtifactsDir}}\*.zip
         tag: ${{needs.version.outputs.new_tag}}
         name: Auto ${{needs.version.outputs.new_tag}}
         body: ${{needs.version.outputs.changelog}}
