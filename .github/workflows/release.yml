@@ -184,8 +184,6 @@ jobs:
           $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers
           $latestVersion = $response.tag_name
 
-           Write-Warning $response.body
-
           if ([string]::IsNullOrEmpty($latestVersion)) {
             Write-Error "Error: The latest release for DKorablin/Flatbed.Dialog.Lite does not have a valid tag name."
             exit 1
@@ -194,13 +192,8 @@ jobs:
             Write-Host "Successfully found latest version: $latestVersion"
           }
 
-          Write-Host "--- All available assets in release $latestVersion ---"
-          foreach ($asset in $release.assets) {
-            Write-Host "Found asset: $($asset.name)"
-          }
-
           # Filter the release assets to find all matching .zip files
-          $assets = $release.assets | Where-Object { $_.name -like "Flatbed.Dialog.Lite*.zip" }
+          $assets = $response.assets | Where-Object { $_.name -like "Flatbed.Dialog.Lite*.zip" }
 
           if ($null -eq $assets -or ($assets -is [System.Array] -and $assets.Length -eq 0)) {
             Write-Error "FATAL: No matching 'Flatbed.Dialog.Lite*.zip' assets found in release $latestVersion."
