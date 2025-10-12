@@ -14,7 +14,7 @@
 #    - Publishes a single, comprehensive GitHub Release with all generated .zip files as artifacts.
 # 4. Cleanup: If any part of the build or release process fails, a final job runs to remove the Git tag that was created.
 
-name: Buid, Release
+name: Build, Release
 
 on:
   push:
