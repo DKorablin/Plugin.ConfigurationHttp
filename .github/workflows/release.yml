@@ -86,9 +86,9 @@ jobs:
         fileName: 'Signature.snk'
         encodedString: ${{secrets.SIGN_ASM_KEY}}
     - uses: actions/checkout@v4
- 
       with:
-        dotnet-version: ${{env.DotNetVersion}}
+        token: ${{secrets.SUBMODULE_TOKEN}}
+        submodules: true
     - name: Caching NuGet packages
       uses: actions/cache@v4
       with:
@@ -198,7 +198,6 @@ jobs:
         ls ${{github.workspace}}\bin -Recurse
     # After that we need to extract all files related to SAL executable into bin folder for specific build
     - name: Dynamically extract assets into framework folders
-      shell: bash
       run: |
         # Get all the framework-specific subdirectories in the bin folder
         $frameworkDirs = Get-ChildItem -Path "${{github.workspace}}\bin" -Directory
