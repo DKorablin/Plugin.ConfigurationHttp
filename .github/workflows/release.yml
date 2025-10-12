@@ -200,15 +200,26 @@ jobs:
             exit 1
           }
 
-          Write-Host "Found $($assets.Count) matching assets to download."
-          $downloadHeaders = @{
-              "Authorization" = "Bearer ${{secrets.DEPLOYMENT_TOKEN}}"
-              "Accept"        = "application/octet-stream"
-          }
+          $frameworkDirs = Get-ChildItem -Path "${{github.workspace}}\bin" -Directory
+          foreach ($dir in $frameworkDirs) {
+            $frameworkName = $dir.Name
+            Write-Host "----- Processing required assets for framework: $frameworkName -----"
 
-          foreach ($asset in $assets) {
-            $destinationPath = Join-Path -Path "${{github.workspace}}\bin" -ChildPath $asset.name
-            Write-Host "Downloading $($asset.url)..."
+            $requiredAssetFilename = "Flatbed.Dialog.Lite_${latestVersion}_${frameworkName}.zip"
+            Write-Host "Searching for required asset: $requiredAssetFilename"
+
+            $assetToDownload = $release.assets | Where-Object { $_.name -eq $requiredAssetFilename }
+
+            if ($null -eq $assetToDownload) {
+              Write-Error "FATAL: The required asset '$requiredAssetFilename' was not found in release '$latestVersion'."
+              exit 1
+            }
+
+            $destinationPath = Join-Path -Path "${{github.workspace}}\bin" -ChildPath $assetToDownload.name
+            $downloadHeaders = @{
+                "Authorization" = "Bearer ${{secrets.DEPLOYMENT_TOKEN}}"
+                "Accept"        = "application/octet-stream"
+            }
 
             Invoke-WebRequest -Uri $asset.url -OutFile $destinationPath -Headers $downloadHeaders
           }
