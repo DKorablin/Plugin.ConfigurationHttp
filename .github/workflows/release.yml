@@ -202,7 +202,7 @@ jobs:
         repo: DKorablin/Flatbed.Dialog.Lite
         version: "tags/${{steps.get_flatbed_release.outputs.latest_version}}"
         regex: true
-        file: ".*\\.zip"
+        file: "Flatbed\\.Dialog\\.Lite.*\\.zip"
         target: ${{github.workspace}}\bin
         token: ${{secrets.DEPLOYMENT_TOKEN}}
     - name: Listing output directory
