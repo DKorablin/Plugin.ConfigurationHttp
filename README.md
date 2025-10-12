@@ -1,4 +1,6 @@
 # Plugin.ConfigurationHttp
+[![Auto build](https://github.com/DKorablin/Plugin.ConfigurationHttp/actions/workflows/release.yml/badge.svg)](https://github.com/DKorablin/Plugin.ConfigurationHttp/releases/latest)
+
 Configuration plugin using built in HTTP(s) server to configure service host applications without stopping it.
 To interact between different instances of the host application on the same machine plugin uses named pipes.
 
