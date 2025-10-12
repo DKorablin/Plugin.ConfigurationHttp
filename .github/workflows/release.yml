@@ -203,10 +203,7 @@ jobs:
           Write-Host "Found $($assets.Count) matching assets to download."
           foreach ($asset in $assets) {
             $destinationPath = Join-Path -Path "${{github.workspace}}/bin" -ChildPath $asset.name
-            Write-Host "Downloading $($asset.browser_download_url)..."
-            # Use Invoke-WebRequest to download the file
-            Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $destinationPath -Headers $headers
-            Write-Host "Successfully downloaded to $destinationPath"
+            Invoke-WebRequest -Uri $asset.url -OutFile $destinationPath -Headers $headers
           }
         } catch {
           # This block will catch API errors (like 404 Not Found) or network issues
