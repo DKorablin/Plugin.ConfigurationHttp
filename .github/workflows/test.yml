@@ -42,7 +42,7 @@ jobs:
       run: dotnet test ${{env.SolutionName}}.sln --no-build --verbosity normal
 
   build:
-    name: Building .NET Framework assembly
+    name: Build
     needs: [test]
     runs-on: windows-latest
     steps:
@@ -66,4 +66,5 @@ jobs:
         msbuild ${{env.SolutionName}}.sln
         /p:ArtifactsDir="${{env.ArtifactsDir}}"
         /p:Configuration=Release
+        /p:GenerateDocumentationFile=true
         /p:SignAssembly=false
