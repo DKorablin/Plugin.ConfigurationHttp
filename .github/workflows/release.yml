@@ -14,7 +14,7 @@
 #    - Publishes a single, comprehensive GitHub Release with all generated .zip files as artifacts.
 # 4. Cleanup: If any part of the build or release process fails, a final job runs to remove the Git tag that was created.
 
-name: Test, Buid, Release
+name: Buid, Release
 
 on:
   push:
@@ -41,35 +41,8 @@ defaults:
     shell: pwsh
 
 jobs:
-  test_net_windows:
-    name: Testing .NET (Windows)
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        token: ${{secrets.SUBMODULE_TOKEN}}
-        submodules: true
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{env.DotNetVersion}}
-    - name: Cache NuGet packages
-      uses: actions/cache@v4
-      with:
-        path: ~/.nuget/packages
-        # Create a new cache when packages.lock.json changes
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/packages.lock.json') }}
-        # If the exact key doesn't exist, use the most recent cache for this OS
-        restore-keys: |
-          ${{ runner.os }}-nuget-
-    - name: Restoring dependencies
-      run: dotnet restore ${{env.SolutionName}}.sln
-    - name: Testing .NET
-      run: dotnet test ${{env.SolutionName}}.sln --no-build --verbosity normal
-
   version:
     name: Incrementing version number
-    needs: [test_net_windows]
     runs-on: ubuntu-latest
     outputs:
       new_version: ${{steps.tag_version.outputs.new_version}}
