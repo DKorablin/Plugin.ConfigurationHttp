@@ -191,20 +191,28 @@ jobs:
             echo "latest_version=$latestVersion" >> $env:GITHUB_OUTPUT
             Write-Host "Successfully found latest version: $latestVersion"
           }
+
+          # Filter the release assets to find all matching .zip files
+          $assets = $release.assets | Where-Object { $_.name -like "Flatbed.Dialog.Lite*.zip" }
+
+          if ($null -eq $assets -or ($assets -is [System.Array] -and $assets.Length -eq 0)) {
+            Write-Error "FATAL: No matching 'Flatbed.Dialog.Lite*.zip' assets found in release $latestVersion."
+            exit 1
+          }
+
+          Write-Host "Found $($assets.Count) matching assets to download."
+          foreach ($asset in $assets) {
+            $destinationPath = Join-Path -Path "${{github.workspace}}/bin" -ChildPath $asset.name
+            Write-Host "Downloading $($asset.name)..."
+            # Use Invoke-WebRequest to download the file
+            Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $destinationPath
+            Write-Host "Successfully downloaded to $destinationPath"
+          }
         } catch {
           # This block will catch API errors (like 404 Not Found) or network issues
           Write-Error "An error occurred while fetching the release information: $_"
           exit 1
         }
-    - name: Downloading Flatbed.Dialog.Lite latest versions
-      uses: dsaltares/fetch-gh-release-asset@master
-      with:
-        repo: DKorablin/Flatbed.Dialog.Lite
-        version: "tags/${{steps.get_flatbed_release.outputs.latest_version}}"
-        regex: true
-        file: "Flatbed\\.Dialog\\.Lite.*\\.zip"
-        target: ${{github.workspace}}\bin
-        token: ${{secrets.DEPLOYMENT_TOKEN}}
     - name: Listing output directory
       run: |
         echo "Listing files in the release directory:"
@@ -238,7 +246,8 @@ jobs:
           }
           else {
             # Output a warning that GitHub Actions will highlight in the logs
-            Write-Warning "Asset file '$assetFilename' not found. Skipping extraction for this framework."
+            Write-Error "Asset file '$assetFilename' not found. Skipping extraction for this framework."
+            exit 1
           }
 
           Write-Host "----- Finished processing framework: $frameworkName -----"
