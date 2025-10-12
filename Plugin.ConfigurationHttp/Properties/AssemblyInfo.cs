@@ -4,14 +4,8 @@ using System.Runtime.InteropServices;
 [assembly: Guid("d10da6bc-77fd-4ada-8b3f-b850023e59ae")]
 [assembly: System.CLSCompliant(true)]
 
-#if NETCOREAPP
-[assembly: AssemblyMetadata("ProjectUrl", "https://github.com/DKorablin/Plugin.ConfigurationHttp")]
-#else
-
-[assembly: AssemblyDescription("Web UI for Plugins configuration")]
+[assembly: AssemblyDescription("Web UI for service based plugins configuration")]
 [assembly: AssemblyCopyright("Copyright © Danila Korablin 2019-2025")]
-
-#endif
 /*
 Register SSL Certificate:
 certhash -> thumbprint
