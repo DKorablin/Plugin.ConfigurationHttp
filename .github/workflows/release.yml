@@ -201,9 +201,16 @@ jobs:
           }
 
           Write-Host "Found $($assets.Count) matching assets to download."
+          $downloadHeaders = @{
+              "Authorization" = "Bearer ${{secrets.DEPLOYMENT_TOKEN}}"
+              "Accept"        = "application/octet-stream"
+          }
+
           foreach ($asset in $assets) {
             $destinationPath = Join-Path -Path "${{github.workspace}}\bin" -ChildPath $asset.name
-            Invoke-WebRequest -Uri $asset.url -OutFile $destinationPath -Headers $headers
+            Write-Host "Downloading $($asset.url)..."
+
+            Invoke-WebRequest -Uri $asset.url -OutFile $destinationPath -Headers $downloadHeaders
           }
         } catch {
           # This block will catch API errors (like 404 Not Found) or network issues
