@@ -148,56 +148,21 @@ jobs:
         /p:SymbolPackageFormat=snupkg
     - name: Deploying package to GitHub
       run: dotnet nuget push ${{github.workspace}}\nupkg\ --skip-duplicate --api-key ${{secrets.GITHUB_TOKEN}} --source https://nuget.pkg.github.com/DKorablin/index.json
-    # This step query the latest version of SAL Flatbed application to store executable files inside current release
+    # This step query the latest version of executable repository to store files inside current release
     - name: Get latest Flatbed.Dialog.Lite release version
       id: get_flatbed_release
       run: |
-        .\.github\scripts\Download-ReleaseAssets.ps1 -GitHubToken ${{secrets.DEPLOYMENT_TOKEN}} -BinDirectory "${{github.workspace}}\bin"
-    # After that we need to extract all files related to SAL executable into bin folder for specific build
+        .\.github\scripts\Download-ReleaseAssets.ps1 `
+            -GitHubToken ${{secrets.DEPLOYMENT_TOKEN}} `
+            -BinDirectory "${{github.workspace}}\bin"
+    # After that we need to extract all files related to executable into bin folder for specific build
     - name: Extract Dependencies and Zip Release Artifacts
       run: |
-        # Get all the framework-specific subdirectories in the bin folder
-        $frameworkDirs = Get-ChildItem -Path "${{github.workspace}}\bin" -Directory
-
-        foreach ($dir in $frameworkDirs) {
-          $frameworkName = $dir.Name
-          Write-Host "----- Processing framework: $frameworkName -----"
-
-          # --- Part 1: Organize original build artifacts into a 'Plugin' subfolder ---
-          Write-Host "Organizing built artifacts into 'Plugin' subfolder..."
-          $pluginFolderPath = Join-Path -Path $dir.FullName -ChildPath "Plugin"
-          New-Item -ItemType Directory -Path $pluginFolderPath
-          $itemsToMove = Get-ChildItem -Path $dir.FullName -Force
-          foreach ($item in $itemsToMove) {
-            if ($item.Name -ne "Plugin") {
-              Move-Item -Path $item.FullName -Destination $pluginFolderPath
-            }
-          }
-
-          # --- Part 2: Extract dependency assets into the root of the framework folder ---
-          $assetFilename = "Flatbed.Dialog.Lite_${{steps.get_flatbed_release.outputs.latest_version}}_${frameworkName}.zip"
-          $assetFilePath = Join-Path -Path "${{github.workspace}}\bin" -ChildPath $assetFilename
-          Write-Host "Looking for dependency asset: $assetFilePath"
-          if (Test-Path -Path $assetFilePath -PathType Leaf) {
-            Write-Host "Asset found. Extracting to '$($dir.FullName)'..."
-            Expand-Archive -Path $assetFilePath -DestinationPath $dir.FullName -Force
-            Write-Host "Cleaning up downloaded dependency zip..."
-            Remove-Item -Path $assetFilePath
-          }
-          else {
-            Write-Error "FATAL: Required dependency asset '$assetFilename' not found."
-            exit 1
-          }
-
-          # --- Part 3: Create the final zipped release archive ---
-          Write-Host "Creating final release archive for $frameworkName..."
-          $zipFileName = "${{env.SolutionName}}_v${{needs.version.outputs.new_version}}_${frameworkName}.zip"
-          $destinationPath = Join-Path -Path $dir.Parent.FullName -ChildPath $zipFileName
-          $sourceContentPath = Join-Path -Path $dir.FullName -ChildPath "*"
-          Compress-Archive -Path $sourceContentPath -DestinationPath $destinationPath -Force
-          Write-Host "Successfully created release archive: $zipFileName"
-          Write-Host "----------------------------------------------------"
-        }
+        .\.github\scripts\Files-OrganizeRelease.ps1 `
+          -BinDirectory "${{github.workspace}}\bin" `
+          -DependencyVersion "${{steps.get_flatbed_release.outputs.latest_version}}" `
+          -SolutionName "${{env.SolutionName}}" `
+          -ReleaseVersion "${{needs.version.outputs.new_version}}"
     - name: Publish GitHub Release
       uses: ncipollo/release-action@v1
       with:
