@@ -184,6 +184,8 @@ jobs:
           $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers
           $latestVersion = $response.tag_name
 
+           Write-Warning $response
+
           if ([string]::IsNullOrEmpty($latestVersion)) {
             Write-Error "Error: The latest release for DKorablin/Flatbed.Dialog.Lite does not have a valid tag name."
             exit 1
