@@ -1,4 +1,4 @@
-# Define parameters that will be passed from the GitHub Actions workflow
+
 param(
     [Parameter(Mandatory=$true)]
     [string]$GitHubToken,
@@ -20,7 +20,7 @@ try {
   $latestVersion = $response.tag_name
 
   if ([string]::IsNullOrEmpty($latestVersion)) {
-    Write-Error "Error: The latest release does not have a valid tag name."
+    Write-Error "The latest release does not have a valid tag name."
     exit 1
   }
 
@@ -41,7 +41,7 @@ try {
     $assetToDownload = $response.assets | Where-Object { $_.name -eq $requiredAssetFilename }
 
     if ($null -eq $assetToDownload) {
-      Write-Error "FATAL: The required asset '$requiredAssetFilename' was not found in release '$latestVersion'."
+      Write-Error "The required asset '$requiredAssetFilename' was not found in release '$latestVersion'."
       exit 1
     }
 

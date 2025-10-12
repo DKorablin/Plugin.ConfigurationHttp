@@ -1,19 +1,19 @@
-# This GitHub Actions workflow automates the entire CI/CD process for a .NET solution
-# that contains both a .NET Framework and .NET projects.
+# This GitHub Actions workflow automates the CI/CD process for all SAL plugins.
 #
 # Workflow Steps:
-# 1. Test: Runs unit tests for the solution.
-# 2. Version: Automatically increments the version number and creates a new git tag.
-# 3. Detect & Build: Detects the project types by using Target Framework from csproj files (.NET Framework vs .NET)
-#    and builds them separately using the appropriate tools (MSBuild or dotnet CLI).
-# 4. Deploy Release:
-#    - Moved release asset into Plugin folder to separate SAL Host and release assets.
-#    - Downloads latest release assets from a corresponding "Flatbed.Dialog.Lite" version repository.
-#    - Merges the downloaded assets into the build output.
-#    - Creates two separate zip archives for each framework type.
-#    - Publishes a single GitHub Release containing both zip files.
-# 5. Deploy NuGet: Publishes a NuGet package to GitHub Packages.
-# 6. Cleanup: If any build or deploy step fails, it automatically removes the created git tag.
+# 1. Test: Runs all unit tests for the solution.
+# 2. Version: Automatically increments the version number based on commit history and creates a new Git tag.
+# 3. Build, Package, and Release: This is a multi-stage job that performs the following:
+#    - Builds the multi-targeted project for all target frameworks.
+#    - Signs the output assemblies.
+#    - Creates and publishes a NuGet package to GitHub Packages.
+#    - Organizes build artifacts into a 'Plugin' subfolder structure.
+#    - Calls an external PowerShell script to download required release assets from the 'Flatbed.Dialog.Lite' repository,
+#      matching only the frameworks that were just built.
+#    - Extracts and merges the downloaded assets into their respective framework folders.
+#    - Creates a separate .zip archive for each framework's final output.
+#    - Publishes a single, comprehensive GitHub Release with all generated .zip files as artifacts.
+# 4. Cleanup: If any part of the build or release process fails, a final job runs to remove the Git tag that was created.
 
 name: Test, Buid, Release
 
@@ -21,11 +21,20 @@ on:
   push:
     branches: [ "master" ]
   workflow_dispatch:
+    inputs:
+      dotNetVersion:
+        description: 'Determine the version of .NET used to configure the environment'
+        required: false
+        default: '8.0.x'
+      newVersion:
+        description: 'Optionally specify a new version number (overrides automatic versioning)'
+        required: false
+        default: ''
 
 env:
   SolutionName: ${{github.event.repository.name}}
   NuGetPackageSourceCredentials_github_DKorablin: Username=${{github.actor}};Password=${{secrets.DEPLOYMENT_TOKEN}}
-  DotNetVersion: 8.0.x
+  DotNetVersion: ${{github.event.inputs.dotNetVersion || '8.0.x'}}
 
 defaults:
   run:
@@ -72,7 +81,7 @@ jobs:
       uses: mathieudutour/github-tag-action@v6.2
       with:
         github_token: ${{secrets.GITHUB_TOKEN}}
-        #custom_tag: 1.0.0
+        custom_tag: ${{github.event.inputs.newVersion}}
 
   build_net:
     name: Build
@@ -109,10 +118,6 @@ jobs:
         /p:SignAssembly=true
         /p:Version=${{needs.version.outputs.new_version}}
         /p:AssemblyOriginatorKeyFile="${{steps.sign_key_file.outputs.filePath}}"
-    - name: Listing output directory
-      run: |
-        echo "Listing files in the release directory:"
-        ls ${{github.workspace}}\bin -Recurse
     - name: Finding portable executables to sign
       id: find_binaries
       run: |
@@ -174,70 +179,42 @@ jobs:
       id: get_flatbed_release
       run: |
         .\.github\scripts\Download-ReleaseAssets.ps1 -GitHubToken ${{secrets.DEPLOYMENT_TOKEN}} -BinDirectory "${{github.workspace}}\bin"
-    - name: Listing output directory
-      run: |
-        echo "Listing files in the release directory:"
-        ls ${{github.workspace}}\bin -Recurse
     # After that we need to extract all files related to SAL executable into bin folder for specific build
-    - name: Dynamically extract assets into framework folders
+    - name: Extract Dependencies and Zip Release Artifacts
       run: |
         # Get all the framework-specific subdirectories in the bin folder
         $frameworkDirs = Get-ChildItem -Path "${{github.workspace}}\bin" -Directory
 
-        # Loop through each framework directory
         foreach ($dir in $frameworkDirs) {
           $frameworkName = $dir.Name
           Write-Host "----- Processing framework: $frameworkName -----"
 
-          # Construct the expected asset filename and its full path
+          # --- Part 1: Logic from the old "Extract" step ---
           $assetFilename = "Flatbed.Dialog.Lite_${{steps.get_flatbed_release.outputs.latest_version}}_${frameworkName}.zip"
           $assetFilePath = Join-Path -Path "${{github.workspace}}\bin" -ChildPath $assetFilename
 
-          Write-Host "Looking for asset file: $assetFilePath"
-
-          # Check if the corresponding zip file was downloaded
+          Write-Host "Looking for dependency asset: $assetFilePath"
           if (Test-Path -Path $assetFilePath -PathType Leaf) {
             Write-Host "Asset found. Extracting to '$($dir.FullName)'..."
-
-            # Unzip the asset into its corresponding framework folder, overwriting if necessary
             Expand-Archive -Path $assetFilePath -DestinationPath $dir.FullName -Force
 
-            Write-Host "Cleaning up downloaded zip file..."
+            Write-Host "Cleaning up downloaded dependency zip..."
             Remove-Item -Path $assetFilePath
           }
           else {
-            # Output a warning that GitHub Actions will highlight in the logs
-            Write-Error "Asset file '$assetFilename' not found. Skipping extraction for this framework."
+            Write-Error "FATAL: Required dependency asset '$assetFilename' not found."
             exit 1
           }
 
-          Write-Host "----- Finished processing framework: $frameworkName -----"
-        }
-    # After SAL executables are also packed inside bin folder we need to pack all of them into separate release assets
-    - name: Zipping individual artifacts
-      run: |
-        # Get all the framework-specific subdirectories in the bin folder
-        $frameworkDirs = Get-ChildItem -Path "${{github.workspace}}\bin" -Directory
-
-        # Loop through each framework directory to create a zip file from its contents
-        foreach ($dir in $frameworkDirs) {
-          $dirName = $dir.Name
-          Write-Host "Zipping contents of directory: $dirName"
-
-          # Construct the name for the output zip file
-          $zipFileName = "${{env.SolutionName}}_v${{needs.version.outputs.new_version}}_${dirName}.zip"
-      
-          # The destination for the zip file is the parent 'bin' directory
+          Write-Host "Creating final release archive for $frameworkName..."
+          $zipFileName = "${{env.SolutionName}}_v${{needs.version.outputs.new_version}}_${frameworkName}.zip"
           $destinationPath = Join-Path -Path $dir.Parent.FullName -ChildPath $zipFileName
-
-          # The source path is all content (*) inside the directory. This ensures
-          # the parent folder itself isn't included in the zip, matching the original script's behavior.
           $sourceContentPath = Join-Path -Path $dir.FullName -ChildPath "*"
-
-          # Create the zip archive, overwriting if it already exists
+          
           Compress-Archive -Path $sourceContentPath -DestinationPath $destinationPath -Force
+          Write-Host "Successfully created release archive: $zipFileName"
+          Write-Host "----------------------------------------------------"
         }
-      working-directory: ${{github.workspace}}\bin
     - name: Publish GitHub Release
       uses: ncipollo/release-action@v1
       with:
