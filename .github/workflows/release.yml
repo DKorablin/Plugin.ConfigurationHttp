@@ -10,8 +10,7 @@
 #    - Organizes build artifacts into a 'Plugin' subfolder structure.
 #    - Calls an external PowerShell script to download required release assets from the 'Flatbed.Dialog.Lite' repository,
 #      matching only the frameworks that were just built.
-#    - Extracts and merges the downloaded assets into their respective framework folders.
-#    - Creates a separate .zip archive for each framework's final output.
+#    - Organize build artifacts, injects dependencies, and creates the final zipped release archives for each target framework.
 #    - Publishes a single, comprehensive GitHub Release with all generated .zip files as artifacts.
 # 4. Cleanup: If any part of the build or release process fails, a final job runs to remove the Git tag that was created.
 
@@ -149,31 +148,6 @@ jobs:
         /p:SymbolPackageFormat=snupkg
     - name: Deploying package to GitHub
       run: dotnet nuget push ${{github.workspace}}\nupkg\ --skip-duplicate --api-key ${{secrets.GITHUB_TOKEN}} --source https://nuget.pkg.github.com/DKorablin/index.json
-    - name: Organize Artifacts into Plugin subfolders
-      # This step creates a "Plugin" folder inside each artifact directory and moves all content into it.
-      run: |
-        Set-Location -Path "${{github.workspace}}\bin"
-        $frameworkDirs = Get-ChildItem -Directory
-
-        # Loop through each framework directory
-        foreach ($dir in $frameworkDirs) {
-          Write-Host "Processing directory: $($dir.Name)"
-
-          # 1. Create the new 'Plugin' subfolder
-          $pluginFolderPath = Join-Path -Path $dir.FullName -ChildPath "Plugin"
-          New-Item -ItemType Directory -Path $pluginFolderPath
-
-          # 2. Get all items (including hidden files) inside the framework folder
-          $itemsToMove = Get-ChildItem -Path $dir.FullName -Force
-
-          # 3. Move each item into the new 'Plugin' folder
-          foreach ($item in $itemsToMove) {
-            # Make sure not to move the 'Plugin' folder into itself
-            if ($item.Name -ne "Plugin") {
-              Move-Item -Path $item.FullName -Destination $pluginFolderPath
-            }
-          }
-        }
     # This step query the latest version of SAL Flatbed application to store executable files inside current release
     - name: Get latest Flatbed.Dialog.Lite release version
       id: get_flatbed_release
@@ -189,15 +163,24 @@ jobs:
           $frameworkName = $dir.Name
           Write-Host "----- Processing framework: $frameworkName -----"
 
-          # --- Part 1: Logic from the old "Extract" step ---
+          # --- Part 1: Organize original build artifacts into a 'Plugin' subfolder ---
+          Write-Host "Organizing built artifacts into 'Plugin' subfolder..."
+          $pluginFolderPath = Join-Path -Path $dir.FullName -ChildPath "Plugin"
+          New-Item -ItemType Directory -Path $pluginFolderPath
+          $itemsToMove = Get-ChildItem -Path $dir.FullName -Force
+          foreach ($item in $itemsToMove) {
+            if ($item.Name -ne "Plugin") {
+              Move-Item -Path $item.FullName -Destination $pluginFolderPath
+            }
+          }
+
+          # --- Part 2: Extract dependency assets into the root of the framework folder ---
           $assetFilename = "Flatbed.Dialog.Lite_${{steps.get_flatbed_release.outputs.latest_version}}_${frameworkName}.zip"
           $assetFilePath = Join-Path -Path "${{github.workspace}}\bin" -ChildPath $assetFilename
-
           Write-Host "Looking for dependency asset: $assetFilePath"
           if (Test-Path -Path $assetFilePath -PathType Leaf) {
             Write-Host "Asset found. Extracting to '$($dir.FullName)'..."
             Expand-Archive -Path $assetFilePath -DestinationPath $dir.FullName -Force
-
             Write-Host "Cleaning up downloaded dependency zip..."
             Remove-Item -Path $assetFilePath
           }
@@ -206,11 +189,11 @@ jobs:
             exit 1
           }
 
+          # --- Part 3: Create the final zipped release archive ---
           Write-Host "Creating final release archive for $frameworkName..."
           $zipFileName = "${{env.SolutionName}}_v${{needs.version.outputs.new_version}}_${frameworkName}.zip"
           $destinationPath = Join-Path -Path $dir.Parent.FullName -ChildPath $zipFileName
           $sourceContentPath = Join-Path -Path $dir.FullName -ChildPath "*"
-          
           Compress-Archive -Path $sourceContentPath -DestinationPath $destinationPath -Force
           Write-Host "Successfully created release archive: $zipFileName"
           Write-Host "----------------------------------------------------"
