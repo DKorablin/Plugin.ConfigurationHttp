@@ -232,28 +232,13 @@ jobs:
         }
     # After SAL executables are also packed inside bin folder we need to pack all of them into separate release assets
     - name: Zipping individual artifacts
+      shell: bash
       run: |
-        # Get all the framework-specific subdirectories in the bin folder
-        $frameworkDirs = Get-ChildItem -Path "${{github.workspace}}\bin" -Directory
-
-        # Loop through each framework directory to create a zip file from its contents
-        foreach ($dir in $frameworkDirs) {
-          $dirName = $dir.Name
-          Write-Host "Zipping contents of directory: $dirName"
-
-          # Construct the name for the output zip file
-          $zipFileName = "${{env.SolutionName}}_v${{needs.version.outputs.new_version}}_${dirName}.zip"
-      
-          # The destination for the zip file is the parent 'bin' directory
-          $destinationPath = Join-Path -Path $dir.Parent.FullName -ChildPath $zipFileName
-
-          # The source path is all content (*) inside the directory. This ensures
-          # the parent folder itself isn't included in the zip, matching the original script's behavior.
-          $sourceContentPath = Join-Path -Path $dir.FullName -ChildPath "*"
-
-          # Create the zip archive, overwriting if it already exists
-          Compress-Archive -Path $sourceContentPath -DestinationPath $destinationPath -Force
-        }
+        # Packing each subdirectory into different release asset
+        cd ${{github.workspace}}/bin
+        for dir in */; do
+          dir_name="${dir%/}"
+          (cd "$dir_name" && zip -qq -r "../${{env.SolutionName}}_v${{needs.version.outputs.new_version}}_${dir_name}.zip" .) 
       working-directory: ${{github.workspace}}\bin
     - name: Deploying GitHub release
       uses: ncipollo/release-action@v1
