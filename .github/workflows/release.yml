@@ -201,7 +201,7 @@ jobs:
       shell: bash
       run: |
         # Get all the framework-specific subdirectories in the bin folder
-        $frameworkDirs = Get-ChildItem -Path "${{github.workspace}}/bin" -Directory
+        $frameworkDirs = Get-ChildItem -Path "${{github.workspace}}\bin" -Directory
 
         # Loop through each framework directory
         foreach ($dir in $frameworkDirs) {
@@ -235,7 +235,7 @@ jobs:
     - name: Zipping individual artifacts
       run: |
         # Get all the framework-specific subdirectories in the bin folder
-        $frameworkDirs = Get-ChildItem -Path "${{github.workspace}}/bin" -Directory
+        $frameworkDirs = Get-ChildItem -Path "${{github.workspace}}\bin" -Directory
 
         # Loop through each framework directory to create a zip file from its contents
         foreach ($dir in $frameworkDirs) {
@@ -255,12 +255,12 @@ jobs:
           # Create the zip archive, overwriting if it already exists
           Compress-Archive -Path $sourceContentPath -DestinationPath $destinationPath -Force
         }
-      working-directory: ${{github.workspace}}/bin
+      working-directory: ${{github.workspace}}\bin
     - name: Deploying GitHub release
       uses: ncipollo/release-action@v1
       with:
         # Creating deployment release with from all packed zip files
-        artifacts: ${{github.workspace}}/bin/*.zip
+        artifacts: ${{github.workspace}}\bin\*.zip
         tag: ${{needs.version.outputs.new_tag}}
         name: Auto ${{needs.version.outputs.new_tag}}
         body: ${{needs.version.outputs.changelog}}
