@@ -202,7 +202,7 @@ jobs:
 
           Write-Host "Found $($assets.Count) matching assets to download."
           foreach ($asset in $assets) {
-            $destinationPath = Join-Path -Path "${{github.workspace}}/bin" -ChildPath $asset.name
+            $destinationPath = Join-Path -Path "${{github.workspace}}\bin" -ChildPath $asset.name
             Invoke-WebRequest -Uri $asset.url -OutFile $destinationPath -Headers $headers
           }
         } catch {
@@ -227,7 +227,7 @@ jobs:
 
           # Construct the expected asset filename and its full path
           $assetFilename = "Flatbed.Dialog.Lite_${{steps.get_flatbed_release.outputs.latest_version}}_${frameworkName}.zip"
-          $assetFilePath = Join-Path -Path "${{github.workspace}}" -ChildPath $assetFilename
+          $assetFilePath = Join-Path -Path "${{github.workspace}}\bin" -ChildPath $assetFilename
 
           Write-Host "Looking for asset file: $assetFilePath"
 
