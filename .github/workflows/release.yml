@@ -192,6 +192,11 @@ jobs:
             Write-Host "Successfully found latest version: $latestVersion"
           }
 
+          Write-Host "--- All available assets in release $latestVersion ---"
+          foreach ($asset in $release.assets) {
+            Write-Host "Found asset: $($asset.name)"
+          }
+
           # Filter the release assets to find all matching .zip files
           $assets = $release.assets | Where-Object { $_.name -like "Flatbed.Dialog.Lite*.zip" }
 
