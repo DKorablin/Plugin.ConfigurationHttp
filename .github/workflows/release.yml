@@ -200,6 +200,7 @@ jobs:
       uses: dsaltares/fetch-gh-release-asset@master
       with:
         repo: DKorablin/Flatbed.Dialog.Lite
+        version: "tags/${{steps.get_flatbed_release.outputs.latest_version}}"
         regex: true
         file: ".*\\.zip"
         target: ${{github.workspace}}\bin
@@ -267,20 +268,18 @@ jobs:
           Compress-Archive -Path $sourceContentPath -DestinationPath $destinationPath -Force
         }
       working-directory: ${{github.workspace}}\bin
-    - name: Deploying GitHub release
+    - name: Publish GitHub Release
       uses: ncipollo/release-action@v1
       with:
-        # Creating deployment release with from all packed zip files
         artifacts: ${{github.workspace}}\bin\*.zip
         tag: ${{needs.version.outputs.new_tag}}
         name: Auto ${{needs.version.outputs.new_tag}}
         body: ${{needs.version.outputs.changelog}}
         artifactErrorsFailBuild: true
         generateReleaseNotes: true
-        token: ${{secrets.DEPLOYMENT_TOKEN}}
 
   failure_cleanup:
-    name: Remove version tag on failure
+    name: Cleanup Tag On Failure
     needs: [version, build_net]
     if: always() && needs.build_net.result != 'success'
     runs-on: ubuntu-latest
