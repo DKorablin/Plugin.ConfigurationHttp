@@ -6,6 +6,6 @@
 		<ArtifactsDir Condition="'$(ArtifactsDir)' == ''">$(SolutionDir)..\bin\$(SolutionName)</ArtifactsDir>
 		<OutputPath>$(ArtifactsDir)\$(TargetFramework)</OutputPath>
 		<AppendTargetFrameworkToOutputPath>False</AppendTargetFrameworkToOutputPath>
-		<BaseIntermediateOutputPath>$(MSBuildProjectDirectory)\..\..\obj\$(MSBuildProjectName)</BaseIntermediateOutputPath>
+		<BaseIntermediateOutputPath>$(MSBuildProjectDirectory)\..\..\obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
 	</PropertyGroup>
 </Project>
