@@ -4,9 +4,10 @@
 		<UseWindowsForms>true</UseWindowsForms>
 		<OutputType>Library</OutputType>
 		<RootNamespace>Plugin.ConfigurationHttp</RootNamespace>
-		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 		<Configuration>Debug</Configuration>
 		<Deterministic>false</Deterministic>
+		<GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>False</GenerateDocumentationFile>
 		<NoWarn>$(NoWarn);</NoWarn>
 		<DefineConstants>$(DefineConstants)</DefineConstants>
