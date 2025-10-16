@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+#if NET8_0_OR_GREATER
+using System.Text.Json;
+#else
 using System.Reflection;
 using System.Web.Script.Serialization;
+#endif
 
 namespace Plugin.ConfigurationHttp
 {
@@ -17,8 +21,12 @@ namespace Plugin.ConfigurationHttp
 			if(String.IsNullOrEmpty(json))
 				return new Dictionary<String, Object>();
 
+#if NET8_0_OR_GREATER
+			return JsonSerializer.Deserialize<Dictionary<String, Object>>(json);
+#else
 			JavaScriptSerializer serializer = new JavaScriptSerializer();
 			return (Dictionary<String, Object>)serializer.DeserializeObject(json);
+#endif
 		}
 
 		/// <summary>Deserialize a string into an object</summary>
@@ -30,8 +38,12 @@ namespace Plugin.ConfigurationHttp
 			if(String.IsNullOrEmpty(json))
 				return default;
 
+#if NET8_0_OR_GREATER
+			return JsonSerializer.Deserialize<T>(json);
+#else
 			JavaScriptSerializer serializer = new JavaScriptSerializer();
 			return serializer.Deserialize<T>(json);
+#endif
 		}
 
 		/// <summary>Deserialize a string into an object</summary>
@@ -43,8 +55,12 @@ namespace Plugin.ConfigurationHttp
 			if(String.IsNullOrEmpty(json))
 				return null;
 
+#if NET8_0_OR_GREATER
+			return JsonSerializer.Deserialize(json, type);
+#else
 			JavaScriptSerializer serializer = new JavaScriptSerializer();
 			return serializer.GetType().InvokeMember("Deserialize", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.InvokeMethod, null, null, new Object[] { serializer, json, type, serializer.RecursionLimit });
+#endif
 		}
 
 		/// <summary>Serialize an object into JSON string</summary>
@@ -55,8 +71,12 @@ namespace Plugin.ConfigurationHttp
 			if(item == null)
 				return null;
 
+#if NET8_0_OR_GREATER
+			return JsonSerializer.Serialize(item);
+#else
 			JavaScriptSerializer serializer = new JavaScriptSerializer();
 			return serializer.Serialize(item);
+#endif
 		}
 	}
 }
