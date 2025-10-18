@@ -1,15 +1,46 @@
 ﻿using System;
 using System.Configuration;
+#if NET8_0_OR_GREATER
+using CoreWCF;
+using CoreWCF.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+#else
 using System.ServiceModel;
 using System.ServiceModel.Configuration;
 using System.ServiceModel.Description;
 using System.Web.Configuration;
 using System.Web.Hosting;
+#endif
 
 namespace Plugin.ConfigurationHttp.Ipc
 {
 	public sealed class ServiceConfiguration
 	{
+#if NET8_0_OR_GREATER
+		private IHost _coreWcfHost;
+		public static readonly ServiceConfiguration Instance = new ServiceConfiguration();
+		private ServiceConfiguration() { }
+
+		public IHost EnsureCoreWcfHost<TService, TEndpoint>(string baseAddress)
+			where TService : class
+		{
+			if (_coreWcfHost != null)
+				return _coreWcfHost;
+
+			_coreWcfHost = Host.CreateDefaultBuilder()
+				.ConfigureServices(services =>
+				{
+					services.AddServiceModelServices();
+					services.AddServiceModelMetadata();
+					services.AddSingleton<TService>();
+				})
+				.Build();
+
+			_coreWcfHost.Start();
+			return _coreWcfHost;
+		}
+#else
 		private readonly ServiceModelSectionGroup _serviceModelGroup;
 
 		public static readonly ServiceConfiguration Instance = new ServiceConfiguration();
@@ -68,5 +99,6 @@ namespace Plugin.ConfigurationHttp.Ipc
 
 			return false;
 		}
+#endif
 	}
 }

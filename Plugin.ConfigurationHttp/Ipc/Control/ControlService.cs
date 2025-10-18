@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Net;
+#if NET8_0_OR_GREATER
+using CoreWCF;
+#else
 using System.ServiceModel;
+#endif
 
 namespace Plugin.ConfigurationHttp.Ipc.Control
 {
