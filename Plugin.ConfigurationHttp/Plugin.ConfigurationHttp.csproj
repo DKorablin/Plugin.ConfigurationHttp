@@ -13,19 +13,6 @@
 		<DefineConstants>$(DefineConstants)</DefineConstants>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)'=='Release'">
-		<Optimize>true</Optimize>
-		<PublishSingleFile>true</PublishSingleFile>
-		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-	</PropertyGroup>
-
-	<ItemGroup Condition="'$(TargetFramework)' != 'net35'">
-		<AssemblyAttributes Include="AssemblyMetadata">
-			<_Parameter1>ProjectUrl</_Parameter1>
-			<_Parameter2>https://github.com/DKorablin/Plugin.ConfigurationHttp</_Parameter2>
-		</AssemblyAttributes>
-	</ItemGroup>
-
 	<!--nuspec-->
 	<PropertyGroup>
 		<PackageId>AlphaOmega.SAL.Plugin.ConfigurationHttp</PackageId>
@@ -43,8 +30,21 @@
 	<ItemGroup>
 		<None Include="..\README.md" Pack="true" PackagePath="\docs" />
 		<EmbeddedResource Include="..\Images.Shared\SAL.100.png" Pack="true" PackagePath="\docs" Link="Files\favicon.ico">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</EmbeddedResource>
+	</ItemGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<Optimize>true</Optimize>
+		<PublishSingleFile>true</PublishSingleFile>
+		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' != 'net35'">
+		<AssemblyAttributes Include="AssemblyMetadata">
+			<_Parameter1>ProjectUrl</_Parameter1>
+			<_Parameter2>https://github.com/DKorablin/Plugin.ConfigurationHttp</_Parameter2>
+		</AssemblyAttributes>
 	</ItemGroup>
 
 	<ItemGroup>
