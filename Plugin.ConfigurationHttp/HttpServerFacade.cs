@@ -38,7 +38,7 @@ namespace Plugin.ConfigurationHttp
 			=> this._wrapper.Start(this._plugin.Settings.GetHostUrl(),
 				this._plugin.Settings.ListenersCount,
 				this._plugin.Settings.IgnoreWriteExceptions,
-				(AuthenticationSchemes)this._plugin.Settings.AuthenticationSchemes);
+				this._plugin.Settings.AuthenticationSchemes);
 
 		/// <summary>Stop HTTP(s) server</summary>
 		public void Stop()
@@ -109,7 +109,6 @@ namespace Plugin.ConfigurationHttp
 				response.StatusCode = (Int32)HttpStatusCode.NoContent;
 			else
 			{
-				//String strResponse = String.Format("<HTML><BODY>Method: {0} Url.PathAndQuery: {1}</BODY></HTML>", request.HttpMethod,request.Url.PathAndQuery);
 				if(result.ContentType != null)
 					response.ContentType = result.ContentType;
 
