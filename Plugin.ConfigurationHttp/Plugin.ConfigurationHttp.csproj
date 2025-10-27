@@ -9,8 +9,7 @@
 		<GenerateAssemblyInfo>False</GenerateAssemblyInfo>
 		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>False</GenerateDocumentationFile>
-		<NoWarn>$(NoWarn);</NoWarn>
-		<DefineConstants>$(DefineConstants)</DefineConstants>
+		<CopyLocalLockFileAssemblies>True</CopyLocalLockFileAssemblies>
 	</PropertyGroup>
 
 	<!--nuspec-->
@@ -26,19 +25,19 @@
 		<RepositoryUrl>https://github.com/DKorablin/Plugin.ConfigurationHttp</RepositoryUrl>
 		<PackageTags>SAL plugin server http configuration</PackageTags>
 	</PropertyGroup>
-
-	<ItemGroup>
-		<None Include="..\README.md" Pack="true" PackagePath="\docs" />
-		<EmbeddedResource Include="..\Images.Shared\SAL.100.png" Pack="true" PackagePath="\docs" Link="Files\favicon.ico">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</EmbeddedResource>
-	</ItemGroup>
-
+	
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
 		<Optimize>true</Optimize>
 		<PublishSingleFile>true</PublishSingleFile>
 		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\README.md" Pack="true" PackagePath="\docs" />
+		<EmbeddedResource Include="..\Images.Shared\SAL.100.png" Pack="true" PackagePath="\docs" Link="Files\favicon.ico">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</EmbeddedResource>
+	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' != 'net35'">
 		<AssemblyAttributes Include="AssemblyMetadata">
@@ -68,6 +67,14 @@
 		<PackageReference Include="CoreWCF.NetNamedPipe" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" />
 	</ItemGroup>
+
+	<!-- Exclude assemblies from copy local based on ExcludeAssembliesFromOutput patterns -->
+	<Target Name="ExcludeSystemAssemblies" AfterTargets="ResolveReferences">
+		<ItemGroup>
+			<ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::Copy('%(Filename)').StartsWith('System.'))" />
+			<ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.Win32.'))" />
+		</ItemGroup>
+	</Target>
 
 	<ItemGroup>
 		<None Remove="Files\a.css" />
