@@ -1,5 +1,9 @@
 ﻿using System;
+#if NET8_0_OR_GREATER
+using CoreWCF;
+#else
 using System.ServiceModel;
+#endif
 using Plugin.ConfigurationHttp.Controllers.Message;
 
 namespace Plugin.ConfigurationHttp.Ipc

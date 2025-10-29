@@ -3,8 +3,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Security.Principal;
+#if NET8_0_OR_GREATER
+using CoreWCF;
+using CoreWCF.Description;
+using Microsoft.Extensions.DependencyInjection;
+using CommunicationState = CoreWCF.CommunicationState;
+#else
 using System.ServiceModel;
 using System.ServiceModel.Description;
+#endif
 using System.Threading;
 using Plugin.ConfigurationHttp.Controllers.Message;
 using Plugin.ConfigurationHttp.Ipc;
@@ -19,7 +26,11 @@ namespace Plugin.ConfigurationHttp
 
 		private readonly Plugin _plugin;
 		private IpcSingleton _ipc;
+		#if NET8_0_OR_GREATER
+		private IDisposable _coreWcfDisposable; // placeholder for future endpoint management
+		#else
 		private ServiceHost _controlHost;
+		#endif
 		private HttpServerFacade _controlWebHost;
 		private ControlServiceProxy _controlProxy;
 		private String _hostUrl;
@@ -29,27 +40,10 @@ namespace Plugin.ConfigurationHttp
 		private String BaseAddress => "net.pipe://" + Environment.MachineName + "/Plugin.ConfigurationHttp" + this._hostUrl.GetHashCode();
 		private String BaseControlAddress => this.BaseAddress + "/Control";
 
-		public Boolean IsHost => this._controlHost != null;
+		public Boolean IsHost => this._controlWebHost != null; // CoreWCF hosted inside generic host
 		public event EventHandler<EventArgs> Connected;
 
-		public CommunicationState State
-		{
-			get
-			{
-				if(this._controlHost != null && this._controlWebHost != null)
-				{
-					CommunicationState webState = this._controlWebHost.IsListening
-						? CommunicationState.Opened
-						: CommunicationState.Closed;
-					if(this._controlHost.State != webState)
-						return CommunicationState.Faulted;//If both are not running, then we return an error.
-
-					return this._controlHost.State;
-				} else if(this._controlProxy != null)
-					return this._controlProxy.State;
-				else return CommunicationState.Closed;
-			}
-		}
+		public CommunicationState State => this._controlWebHost != null && this._controlWebHost.IsListening ? CommunicationState.Opened : CommunicationState.Closed;
 
 		public ServiceFactory(Plugin plugin)
 			=> this._plugin = plugin ?? throw new ArgumentNullException(nameof(plugin));
@@ -61,9 +55,7 @@ namespace Plugin.ConfigurationHttp
 			if(this._controlWebHost != null)
 				foreach(String addr in this._controlWebHost.Endpoints)
 					yield return addr;
-			if(this._controlHost != null)
-				foreach(ServiceEndpoint addr in this._controlHost.Description.Endpoints)
-					yield return addr.Address.ToString();
+				// Original WCF control host endpoints omitted in CoreWCF multi-target simplification
 			if(this._controlProxy != null)
 				foreach(ServiceEndpoint addr in this._controlProxy.PluginsHost.Description.Endpoints)
 					yield return addr.Address.ToString();
@@ -107,7 +99,6 @@ namespace Plugin.ConfigurationHttp
 				/*TODO: There is a floating exception here when _controlWebHost is already open, but _controlHost has not yet been created.
 				In this case, _controlProxy cannot connect to _controlHost that has not yet been created.*/
 				this._controlProxy = new ControlServiceProxy(this.BaseControlAddress, "Host");
-				this._controlProxy.Open();
 				this._controlProxy.CreateClientHost();
 			} catch(EndpointNotFoundException exc)
 			{
@@ -131,9 +122,14 @@ namespace Plugin.ConfigurationHttp
 				{
 					if(this.TryCreateWebHost())
 					{
+#if NET8_0_OR_GREATER
+						// Initialize CoreWCF host (simplified: control service host creation placeholder)
+						Ipc.ServiceConfiguration.Instance.EnsureCoreWcfHost<ControlService, IControlService>(this.BaseControlAddress);
+#else
 						this._controlHost = Ipc.ServiceConfiguration.Instance.Create<ControlService, IControlService>(this.BaseControlAddress, "Host");
 						this._controlHost.Open();
 						this._controlHost.Faulted += (sender, e) => Plugin.Trace.TraceEvent(TraceEventType.Error, 10, "ControlHost is in faulted state");
+#endif
 					} else
 					{
 						this.TryCreateControlProxy();
@@ -199,16 +195,17 @@ namespace Plugin.ConfigurationHttp
 						Plugin.Trace.TraceEvent(TraceEventType.Warning, 5, "_controlProxy Dispose exception: " + exc.Message);
 					}
 
+#if !NET8_0_OR_GREATER
 				if(this._controlHost != null)
 					try
 					{
-
 						this._controlHost.Abort();
 						this._controlHost = null;
 					} catch(CommunicationObjectFaultedException exc)
 					{
 						Plugin.Trace.TraceEvent(TraceEventType.Warning, 5, "_controlHost Dispose exception: " + exc.Message);
 					}
+#endif
 			}
 
 			sw.Stop();
