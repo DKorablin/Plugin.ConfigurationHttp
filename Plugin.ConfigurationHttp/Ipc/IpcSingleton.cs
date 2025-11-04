@@ -32,14 +32,14 @@ namespace Plugin.ConfigurationHttp.Ipc
 		{
 			String mutexId = this._name;
 
-			using(Mutex mutext = new Mutex(false, mutexId, out Boolean _))
+			using(Mutex mutex = new Mutex(false, mutexId, out Boolean _))
 			{
 				Boolean hasHandle = false;
 				try
 				{
 					try
 					{//note, you may want to time out here instead of waiting forever
-						hasHandle = mutext.WaitOne(this._timeout, false);
+						hasHandle = mutex.WaitOne(this._timeout, false);
 						if(!hasHandle)
 							throw new TimeoutException("Timeout waiting for exclusive access");
 					} catch(AbandonedMutexException)
@@ -51,7 +51,7 @@ namespace Plugin.ConfigurationHttp.Ipc
 				} finally
 				{
 					if(hasHandle)//If we got handle, then close mutex
-						mutext.ReleaseMutex();
+						mutex.ReleaseMutex();
 				}
 			}
 		}

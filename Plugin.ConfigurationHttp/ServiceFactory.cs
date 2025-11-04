@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Net;
 using System.Security.Principal;
-#if NET8_0_OR_GREATER
+using System.Threading;
+using System.Net;
+#if NETFRAMEWORK
+using System.ServiceModel;
+using System.ServiceModel.Description;
+#else
 using CoreWCF;
 using CoreWCF.Description;
 using Microsoft.Extensions.DependencyInjection;
 using CommunicationState = CoreWCF.CommunicationState;
-#else
-using System.ServiceModel;
-using System.ServiceModel.Description;
+using ServiceHost = Plugin.ConfigurationHttp.CoreWcfServiceHost;
 #endif
-using System.Threading;
 using Plugin.ConfigurationHttp.Controllers.Message;
 using Plugin.ConfigurationHttp.Ipc;
 using Plugin.ConfigurationHttp.Ipc.Control;
@@ -26,11 +27,9 @@ namespace Plugin.ConfigurationHttp
 
 		private readonly Plugin _plugin;
 		private IpcSingleton _ipc;
-		#if NET8_0_OR_GREATER
-		private IDisposable _coreWcfDisposable; // placeholder for future endpoint management
-		#else
+
 		private ServiceHost _controlHost;
-		#endif
+
 		private HttpServerFacade _controlWebHost;
 		private ControlServiceProxy _controlProxy;
 		private String _hostUrl;
@@ -122,14 +121,12 @@ namespace Plugin.ConfigurationHttp
 				{
 					if(this.TryCreateWebHost())
 					{
-#if NET8_0_OR_GREATER
-						// Initialize CoreWCF host (simplified: control service host creation placeholder)
-						Ipc.ServiceConfiguration.Instance.EnsureCoreWcfHost<ControlService, IControlService>(this.BaseControlAddress);
-#else
 						this._controlHost = Ipc.ServiceConfiguration.Instance.Create<ControlService, IControlService>(this.BaseControlAddress, "Host");
 						this._controlHost.Open();
 						this._controlHost.Faulted += (sender, e) => Plugin.Trace.TraceEvent(TraceEventType.Error, 10, "ControlHost is in faulted state");
-#endif
+
+						// Initialize CoreWCF host (simplified: control service host creation placeholder)
+						//Ipc.ServiceConfiguration.Instance.EnsureCoreWcfHost<ControlService, IControlService>(this.BaseControlAddress);
 					} else
 					{
 						this.TryCreateControlProxy();
@@ -164,6 +161,7 @@ namespace Plugin.ConfigurationHttp
 		{
 			Stopwatch sw = new Stopwatch();
 			sw.Start();
+
 			CommunicationState state = this.State;
 			lock(ObjLock)
 			{
@@ -173,43 +171,27 @@ namespace Plugin.ConfigurationHttp
 					this._ping = null;
 				}
 
-				if(this._controlWebHost != null)
-					try
-					{
+				AbortServiceHost(nameof(this._controlWebHost), this._controlWebHost, p => p.Stop());
 
-						this._controlWebHost.Stop();
-						this._controlWebHost = null;
-					} catch(CommunicationObjectFaultedException exc)
-					{
-						Plugin.Trace.TraceEvent(TraceEventType.Warning, 5, "_controlWebHost Dispose exception: " + exc.Message);
-					}
+				AbortServiceHost(nameof(this._controlProxy), this._controlProxy, p => p.DisconnectControlHost());
 
-				if(this._controlProxy != null)
-					try
-					{
-
-						this._controlProxy.DisconnectControlHost();
-						this._controlProxy = null;
-					} catch(CommunicationObjectFaultedException exc)
-					{
-						Plugin.Trace.TraceEvent(TraceEventType.Warning, 5, "_controlProxy Dispose exception: " + exc.Message);
-					}
-
-#if !NET8_0_OR_GREATER
-				if(this._controlHost != null)
-					try
-					{
-						this._controlHost.Abort();
-						this._controlHost = null;
-					} catch(CommunicationObjectFaultedException exc)
-					{
-						Plugin.Trace.TraceEvent(TraceEventType.Warning, 5, "_controlHost Dispose exception: " + exc.Message);
-					}
-#endif
+				AbortServiceHost(nameof(this._controlHost), this._controlHost, p => p.Abort());
 			}
 
 			sw.Stop();
 			Plugin.Trace.TraceEvent(TraceEventType.Verbose, 7, "Destroyed. State: {0} Elapsed: {1} ", state, sw.Elapsed);
+		}
+
+		private static void AbortServiceHost<T>(String name, T service, Action<T> method) where T : class
+		{
+			if(service != null)
+				try
+				{
+					method(service);
+				} catch(System.ServiceModel.CommunicationObjectFaultedException exc)
+				{
+					Plugin.Trace.TraceEvent(TraceEventType.Warning, 5, name + " Dispose exception: " + exc.Message);
+				}
 		}
 
 		private void TimerCallback(Object state)

@@ -8,8 +8,16 @@
 		</PackageVersion>
 		<PackageVersion Include="AlphaOmega.PushSharp.WebPush" Version="1.0.19" />
 		<PackageVersion Include="Portable.BouncyCastle" Version="1.9.0" />
+		<!-- .NET 8 WCF packages - CoreWCF for server-side, System.ServiceModel for client-side -->
+		<PackageVersion Include="CoreWCF.Primitives" Version="1.8.0" />
+		<PackageVersion Include="CoreWCF.Http" Version="1.8.0" />
+		<PackageVersion Include="CoreWCF.WebHttp" Version="1.8.0" />
 		<PackageVersion Include="CoreWCF.NetNamedPipe" Version="1.8.0-preview.38" />
 		<PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+		<PackageVersion Include="System.ServiceModel.Primitives" Version="8.0.0" />
+		<PackageVersion Include="System.ServiceModel.Http" Version="8.0.0" />
+		<PackageVersion Include="System.ServiceModel.NetNamedPipe" Version="8.0.0" />
+		<PackageVersion Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
 		<!--Analyzers-->
 		<GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="10.8.0.113526">
 			<PrivateAssets>All</PrivateAssets>

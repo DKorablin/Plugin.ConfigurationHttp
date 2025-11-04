@@ -1,29 +1,75 @@
 ﻿using System;
 using System.Configuration;
-#if NET8_0_OR_GREATER
-using CoreWCF;
-using CoreWCF.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-#else
+#if NETFRAMEWORK
 using System.ServiceModel;
 using System.ServiceModel.Configuration;
 using System.ServiceModel.Description;
 using System.Web.Configuration;
 using System.Web.Hosting;
+#else
+using CoreWCF;
+using CoreWCF.Configuration;
+using CoreWCF.Description;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using ServiceHost = Plugin.ConfigurationHttp.CoreWcfServiceHost;
 #endif
 
 namespace Plugin.ConfigurationHttp.Ipc
 {
-	public sealed class ServiceConfiguration
+	internal sealed class ServiceConfiguration
 	{
+#if NETFRAMEWORK
+		private readonly ServiceModelSectionGroup _serviceModelGroup;
+#endif
+
+		public static readonly ServiceConfiguration Instance = new ServiceConfiguration();
+
+		private ServiceConfiguration()
+		{
+#if NETFRAMEWORK
+			Configuration configuration = HostingEnvironment.IsHosted
+				? WebConfigurationManager.OpenWebConfiguration("~")
+				: ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+
+			this._serviceModelGroup = configuration == null ? null : ServiceModelSectionGroup.GetSectionGroup(configuration);
+#endif
+		}
+
+		public ServiceHost Create<TService, TEndpoint>(String baseAddress, String address)
+		{
+#if NETFRAMEWORK
+			if(this.CheckServiceConfiguration<TEndpoint>())
+				return new ServiceHost(typeof(TService));
+			else
+			{
+				ServiceHost result = new ServiceHost(typeof(TService), new Uri(baseAddress));
+
+				NetNamedPipeBinding binding = new NetNamedPipeBinding(NetNamedPipeSecurityMode.None)
+				{//https://stackoverflow.com/questions/2911221/what-is-the-purpose-of-wcf-reliable-session
+					ReceiveTimeout = TimeSpan.MaxValue,
+				};
+				ServiceEndpoint endpoint = result.AddServiceEndpoint(typeof(TEndpoint), binding, address);
+
+				return result;
+			}
+#else
+			ServiceHost result = new ServiceHost(typeof(TService), new Uri(baseAddress));
+
+			NetNamedPipeBinding binding = new NetNamedPipeBinding(NetNamedPipeSecurityMode.None)
+			{
+				ReceiveTimeout = TimeSpan.MaxValue,
+			};
+			ServiceEndpoint endpoint = result.AddServiceEndpoint(typeof(TEndpoint), binding, address);
+
+			return result;
+#endif
+		}
+
 #if NET8_0_OR_GREATER
 		private IHost _coreWcfHost;
-		public static readonly ServiceConfiguration Instance = new ServiceConfiguration();
-		private ServiceConfiguration() { }
 
-		public IHost EnsureCoreWcfHost<TService, TEndpoint>(string baseAddress)
-			where TService : class
+		public IHost EnsureCoreWcfHost<TService, TEndpoint>(String baseAddress) where TService : class
 		{
 			if (_coreWcfHost != null)
 				return _coreWcfHost;
@@ -41,36 +87,6 @@ namespace Plugin.ConfigurationHttp.Ipc
 			return _coreWcfHost;
 		}
 #else
-		private readonly ServiceModelSectionGroup _serviceModelGroup;
-
-		public static readonly ServiceConfiguration Instance = new ServiceConfiguration();
-
-		private ServiceConfiguration()
-		{
-			Configuration configuration = HostingEnvironment.IsHosted
-				? WebConfigurationManager.OpenWebConfiguration("~")
-				: ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-
-			this._serviceModelGroup = configuration == null ? null : ServiceModelSectionGroup.GetSectionGroup(configuration);
-		}
-
-		public ServiceHost Create<TService, TEndpoint>(String baseAddress, String address)
-		{
-			if(this.CheckServiceConfiguration<TEndpoint>())
-				return new ServiceHost(typeof(TService));
-			else
-			{
-				ServiceHost result = new ServiceHost(typeof(TService), new Uri(baseAddress));
-
-				NetNamedPipeBinding binding = new NetNamedPipeBinding(NetNamedPipeSecurityMode.None)
-				{//https://stackoverflow.com/questions/2911221/what-is-the-purpose-of-wcf-reliable-session
-					ReceiveTimeout = TimeSpan.MaxValue,
-				};
-				ServiceEndpoint endpoint = result.AddServiceEndpoint(typeof(TEndpoint), binding, address);
-
-				return result;
-			}
-		}
 
 		private Boolean CheckClientConfiguration<TEndpoint>()
 		{

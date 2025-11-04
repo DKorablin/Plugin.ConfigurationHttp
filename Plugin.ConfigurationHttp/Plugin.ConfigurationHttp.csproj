@@ -63,19 +63,27 @@
 		<Reference Include="System.Web.Extensions" />
 	</ItemGroup>
 
-	<!-- CoreWCF for .NET 8 named pipe IPC replacement -->
 	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
+		<!-- CoreWCF for .NET 8 named pipe IPC replacement -->
+		<PackageReference Include="CoreWCF.Primitives" />
+		<PackageReference Include="CoreWCF.Http" />
+		<PackageReference Include="CoreWCF.WebHttp" />
 		<PackageReference Include="CoreWCF.NetNamedPipe" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" />
+		<!-- System.ServiceModel for client-side -->
+		<PackageReference Include="System.ServiceModel.Primitives" />
+		<PackageReference Include="System.ServiceModel.Http" />
+		<PackageReference Include="System.ServiceModel.NetNamedPipe" />
+		<PackageReference Include="System.Configuration.ConfigurationManager" />
 	</ItemGroup>
 
-	<!-- Exclude assemblies from copy local based on ExcludeAssembliesFromOutput patterns -->
-	<Target Name="ExcludeSystemAssemblies" AfterTargets="ResolveReferences">
+	<!-- Exclude shared assemblies from copy to the output directory-->
+	<!--Target Name="ExcludeSystemAssemblies" AfterTargets="ResolveReferences">
 		<ItemGroup>
 			<ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::Copy('%(Filename)').StartsWith('System.'))" />
 			<ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.Win32.'))" />
 		</ItemGroup>
-	</Target>
+	</Target-->
 
 	<ItemGroup>
 		<None Remove="Files\a.css" />

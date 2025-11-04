@@ -1,26 +1,16 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-#if NET8_0_OR_GREATER
-// IPC proxy not implemented for .NET 8 (CoreWCF server only). Stub to satisfy references.
-namespace Plugin.ConfigurationHttp.Ipc.Control
-{
-	public class ControlServiceProxy
-	{
-		public ControlServiceProxy(String baseAddress, String address) { }
-		public void CreateClientHost() { }
-		public Boolean Ping() => true;
-		public void DisconnectControlHost() { }
-		public dynamic PluginsHost => null;
-		public CoreWCF.CommunicationState State => CoreWCF.CommunicationState.Closed;
-	}
-}
-#else
 using System.ServiceModel;
+#if NETFRAMEWORK
+using ServiceHost = System.ServiceModel.ServiceHost;
+#else
+using ServiceHost = Plugin.ConfigurationHttp.CoreWcfServiceHost;
+#endif
 
 namespace Plugin.ConfigurationHttp.Ipc.Control
 {
-	public class ControlServiceProxy : ClientBase<IControlService>
+	internal class ControlServiceProxy : ClientBase<IControlService>
 	{
 		private readonly Int32 _processId = Process.GetCurrentProcess().Id;
 		private readonly String _baseHostAddress;
@@ -108,4 +98,3 @@ namespace Plugin.ConfigurationHttp.Ipc.Control
 		}
 	}
 }
-#endif
