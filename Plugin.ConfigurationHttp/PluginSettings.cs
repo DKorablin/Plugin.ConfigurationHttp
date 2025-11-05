@@ -15,7 +15,7 @@ namespace Plugin.ConfigurationHttp
 {
 	public class PluginSettings : INotifyPropertyChanged
 	{
-		private class PushMessage
+		private sealed class PushMessage
 		{
 			public String Title { get; set; }
 			public String Description { get; set; }

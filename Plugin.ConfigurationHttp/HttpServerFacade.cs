@@ -38,7 +38,7 @@ namespace Plugin.ConfigurationHttp
 			=> this._wrapper.Start(this._plugin.Settings.GetHostUrl(),
 				this._plugin.Settings.ListenersCount,
 				this._plugin.Settings.IgnoreWriteExceptions,
-				(AuthenticationSchemes)this._plugin.Settings.AuthenticationSchemes);
+				this._plugin.Settings.AuthenticationSchemes);
 
 		/// <summary>Stop HTTP(s) server</summary>
 		public void Stop()
@@ -46,8 +46,17 @@ namespace Plugin.ConfigurationHttp
 
 		public void Dispose()
 		{
-			this._wrapper.Dispose();
-			this._plugin.Settings.PropertyChanged -= this.Settings_PropertyChanged;
+			this.Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(Boolean disposing)
+		{
+			if(disposing)
+			{
+				this._wrapper.Dispose();
+				this._plugin.Settings.PropertyChanged -= this.Settings_PropertyChanged;
+			}
 		}
 
 		private void Settings_PropertyChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -109,7 +118,6 @@ namespace Plugin.ConfigurationHttp
 				response.StatusCode = (Int32)HttpStatusCode.NoContent;
 			else
 			{
-				//String strResponse = String.Format("<HTML><BODY>Method: {0} Url.PathAndQuery: {1}</BODY></HTML>", request.HttpMethod,request.Url.PathAndQuery);
 				if(result.ContentType != null)
 					response.ContentType = result.ContentType;
 

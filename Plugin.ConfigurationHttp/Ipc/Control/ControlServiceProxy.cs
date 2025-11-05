@@ -2,10 +2,15 @@
 using System.Diagnostics;
 using System.IO;
 using System.ServiceModel;
+#if NETFRAMEWORK
+using ServiceHost = System.ServiceModel.ServiceHost;
+#else
+using ServiceHost = Plugin.ConfigurationHttp.CoreWcfServiceHost;
+#endif
 
 namespace Plugin.ConfigurationHttp.Ipc.Control
 {
-	public class ControlServiceProxy : ClientBase<IControlService>
+	internal class ControlServiceProxy : ClientBase<IControlService>
 	{
 		private readonly Int32 _processId = Process.GetCurrentProcess().Id;
 		private readonly String _baseHostAddress;
