@@ -71,10 +71,10 @@ namespace Plugin.ConfigurationHttp.Ipc
 
 		public IHost EnsureCoreWcfHost<TService, TEndpoint>(String baseAddress) where TService : class
 		{
-			if (_coreWcfHost != null)
-				return _coreWcfHost;
+			if (this._coreWcfHost != null)
+				return this._coreWcfHost;
 
-			_coreWcfHost = Host.CreateDefaultBuilder()
+			this._coreWcfHost = Host.CreateDefaultBuilder()
 				.ConfigureServices(services =>
 				{
 					services.AddServiceModelServices();
@@ -83,8 +83,8 @@ namespace Plugin.ConfigurationHttp.Ipc
 				})
 				.Build();
 
-			_coreWcfHost.Start();
-			return _coreWcfHost;
+			this._coreWcfHost.Start();
+			return this._coreWcfHost;
 		}
 #else
 
