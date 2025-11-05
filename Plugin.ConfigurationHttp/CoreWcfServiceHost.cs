@@ -144,19 +144,28 @@ namespace Plugin.ConfigurationHttp
 
 		public void Dispose()
 		{
-			if(this.State == CommunicationState.Opened)
-			{
-				try
-				{
-					this.Close();
-				} catch
-				{
-					this.Abort();
-				}
-			}
+			this.Dispose(true);
+			GC.SuppressFinalize(this);
+		}
 
-			this._host?.Dispose();
-			this._host = null;
+		protected virtual void Dispose(Boolean disposing)
+		{
+			if(disposing)
+			{
+				if(this.State == CommunicationState.Opened)
+				{
+					try
+					{
+						this.Close();
+					} catch
+					{
+						this.Abort();
+					}
+				}
+
+				this._host?.Dispose();
+				this._host = null;
+			}
 		}
 	}
 }

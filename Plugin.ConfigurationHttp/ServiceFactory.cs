@@ -159,27 +159,36 @@ namespace Plugin.ConfigurationHttp
 
 		public void Dispose()
 		{
-			Stopwatch sw = new Stopwatch();
-			sw.Start();
+			this.Dispose(true);
+			GC.SuppressFinalize(this);
+		}
 
-			CommunicationState state = this.State;
-			lock(ObjLock)
+		protected virtual void Dispose(Boolean disposing)
+		{
+			if(disposing)
 			{
-				if(this._ping != null)
+				Stopwatch sw = new Stopwatch();
+				sw.Start();
+
+				CommunicationState state = this.State;
+				lock(ObjLock)
 				{
-					this._ping.Dispose();
-					this._ping = null;
+					if(this._ping != null)
+					{
+						this._ping.Dispose();
+						this._ping = null;
+					}
+
+					AbortServiceHost(nameof(this._controlWebHost), this._controlWebHost, p => p.Stop());
+
+					AbortServiceHost(nameof(this._controlProxy), this._controlProxy, p => p.DisconnectControlHost());
+
+					AbortServiceHost(nameof(this._controlHost), this._controlHost, p => p.Abort());
 				}
 
-				AbortServiceHost(nameof(this._controlWebHost), this._controlWebHost, p => p.Stop());
-
-				AbortServiceHost(nameof(this._controlProxy), this._controlProxy, p => p.DisconnectControlHost());
-
-				AbortServiceHost(nameof(this._controlHost), this._controlHost, p => p.Abort());
+				sw.Stop();
+				Plugin.Trace.TraceEvent(TraceEventType.Verbose, 7, "Destroyed. State: {0} Elapsed: {1} ", state, sw.Elapsed);
 			}
-
-			sw.Stop();
-			Plugin.Trace.TraceEvent(TraceEventType.Verbose, 7, "Destroyed. State: {0} Elapsed: {1} ", state, sw.Elapsed);
 		}
 
 		private static void AbortServiceHost<T>(String name, T service, Action<T> method) where T : class

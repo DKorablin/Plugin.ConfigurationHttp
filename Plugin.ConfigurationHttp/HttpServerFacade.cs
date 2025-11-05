@@ -46,8 +46,17 @@ namespace Plugin.ConfigurationHttp
 
 		public void Dispose()
 		{
-			this._wrapper.Dispose();
-			this._plugin.Settings.PropertyChanged -= this.Settings_PropertyChanged;
+			this.Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(Boolean disposing)
+		{
+			if(disposing)
+			{
+				this._wrapper.Dispose();
+				this._plugin.Settings.PropertyChanged -= this.Settings_PropertyChanged;
+			}
 		}
 
 		private void Settings_PropertyChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e)

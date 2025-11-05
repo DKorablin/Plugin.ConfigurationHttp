@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-#if NET8_0_OR_GREATER
-using System.Text.Json;
-#else
+#if NETFRAMEWORK
 using System.Reflection;
 using System.Web.Script.Serialization;
+#else
+using System.Text.Json;
 #endif
 
 namespace Plugin.ConfigurationHttp

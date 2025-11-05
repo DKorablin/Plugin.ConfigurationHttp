@@ -17,14 +17,14 @@
 	<PropertyGroup>
 		<PackageId>AlphaOmega.SAL.Plugin.ConfigurationHttp</PackageId>
 		<Version>$(Version)</Version>
-		<Title>HTTP(s) configuration plugin for service based applications</Title>
-		<Description>Configuration plugin using built in HTTP(s) server to configure service host applications on the runtime</Description>
+		<Title>SAL Plugin: HTTP/HTTPS Configuration UI with IPC Coordination</Title>
+		<Description>Self-hosted HTTP/HTTPS configuration plugin for SAL service applications with live settings editor, multi-process IPC coordination via named pipes, and RFC-8030 web push notifications. Supports .NET Framework 4.8 (WCF) and .NET 8 (CoreWCF). Features process discovery, grouped editable settings with metadata attributes, persistent configuration storage, and optional authentication (Basic/Digest/NTLM/Negotiate).</Description>
 		<Authors>Danila Korablin</Authors>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageReadmeFile>docs\README.md</PackageReadmeFile>
 		<PackageIcon>docs\SAL.100.png</PackageIcon>
 		<RepositoryUrl>https://github.com/DKorablin/Plugin.ConfigurationHttp</RepositoryUrl>
-		<PackageTags>SAL plugin server http configuration</PackageTags>
+		<PackageTags>SAL;Plugin;Service;Configuration;http;https;web-ui;ipc;wcf;corewcf;named-pipes;web-push;rfc8030;settings;multi-process;coordination;authentication;vapid</PackageTags>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
