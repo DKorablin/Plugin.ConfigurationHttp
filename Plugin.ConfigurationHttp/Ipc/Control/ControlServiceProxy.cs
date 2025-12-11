@@ -26,7 +26,7 @@ namespace Plugin.ConfigurationHttp.Ipc.Control
 
 		public ControlServiceProxy(String baseAddress, String address)
 			: base(new NetNamedPipeBinding(NetNamedPipeSecurityMode.None),
-				new EndpointAddress(baseAddress + "/" + address))
+				new EndpointAddress(baseAddress))
 		{
 			this._baseHostAddress = baseAddress;
 			this._relativeAddress = address;
@@ -34,7 +34,6 @@ namespace Plugin.ConfigurationHttp.Ipc.Control
 
 		public void CreateClientHost()
 		{
-
 			ServiceHost pluginsHost = ServiceConfiguration.Instance.Create<PluginsIpcService, IPluginsIpcService>(this.ClientBaseAddress, "Plugins");
 			pluginsHost.Faulted += this.NotifyHost_Faulted;
 			pluginsHost.Open();

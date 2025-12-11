@@ -4,7 +4,7 @@
 		<UseWindowsForms>true</UseWindowsForms>
 		<OutputType>Library</OutputType>
 		<RootNamespace>Plugin.ConfigurationHttp</RootNamespace>
-		<Configuration>Debug</Configuration>
+		<Configuration>Release</Configuration>
 		<Deterministic>false</Deterministic>
 		<GenerateAssemblyInfo>False</GenerateAssemblyInfo>
 		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
@@ -76,14 +76,6 @@
 		<PackageReference Include="System.ServiceModel.NetNamedPipe" />
 		<PackageReference Include="System.Configuration.ConfigurationManager" />
 	</ItemGroup>
-
-	<!-- Exclude shared assemblies from copy to the output directory-->
-	<!--Target Name="ExcludeSystemAssemblies" AfterTargets="ResolveReferences">
-		<ItemGroup>
-			<ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::Copy('%(Filename)').StartsWith('System.'))" />
-			<ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.Win32.'))" />
-		</ItemGroup>
-	</Target-->
 
 	<ItemGroup>
 		<None Remove="Files\a.css" />

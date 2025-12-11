@@ -36,8 +36,7 @@ namespace Plugin.ConfigurationHttp
 		private Timer _ping;
 		private readonly Object ObjLock = new Object();
 
-		private String BaseAddress => "net.pipe://" + Environment.MachineName + "/Plugin.ConfigurationHttp" + this._hostUrl.GetHashCode();
-		private String BaseControlAddress => this.BaseAddress + "/Control";
+		private String BaseControlAddress => $"net.pipe://{Environment.MachineName}/Plugin.ConfigurationHttp{Utils.GetDeterministicHashCode(this._hostUrl)}/Control";
 
 		public Boolean IsHost => this._controlWebHost != null; // CoreWCF hosted inside generic host
 		public event EventHandler<EventArgs> Connected;
@@ -54,7 +53,9 @@ namespace Plugin.ConfigurationHttp
 			if(this._controlWebHost != null)
 				foreach(String addr in this._controlWebHost.Endpoints)
 					yield return addr;
-				// Original WCF control host endpoints omitted in CoreWCF multi-target simplification
+			if(this._controlHost != null)
+				foreach(ServiceEndpoint addr in this._controlHost.Description.Endpoints)
+					yield return addr.Address.ToString();
 			if(this._controlProxy != null)
 				foreach(ServiceEndpoint addr in this._controlProxy.PluginsHost.Description.Endpoints)
 					yield return addr.Address.ToString();
@@ -98,8 +99,9 @@ namespace Plugin.ConfigurationHttp
 				/*TODO: There is a floating exception here when _controlWebHost is already open, but _controlHost has not yet been created.
 				In this case, _controlProxy cannot connect to _controlHost that has not yet been created.*/
 				this._controlProxy = new ControlServiceProxy(this.BaseControlAddress, "Host");
+				this._controlProxy.Open();
 				this._controlProxy.CreateClientHost();
-			} catch(EndpointNotFoundException exc)
+			} catch(System.ServiceModel.EndpointNotFoundException exc)
 			{
 				exc.Data.Add(nameof(this._hostUrl), this._hostUrl);
 				exc.Data.Add(nameof(this.BaseControlAddress), this.BaseControlAddress + "/Host");
@@ -114,7 +116,7 @@ namespace Plugin.ConfigurationHttp
 				throw new ArgumentNullException(nameof(hostUrl));
 
 			this._hostUrl = hostUrl;
-			this._ipc = new IpcSingleton("Global\\Plugin.ConfigurationHttp." + this._hostUrl.GetHashCode(), new TimeSpan(0, 0, 10));
+			this._ipc = new IpcSingleton("Global\\Plugin.ConfigurationHttp." + Utils.GetDeterministicHashCode(this._hostUrl), new TimeSpan(0, 0, 10));
 			this._ipc.Mutex<Object>(null, p =>
 			{
 				try
@@ -128,9 +130,7 @@ namespace Plugin.ConfigurationHttp
 						// Initialize CoreWCF host (simplified: control service host creation placeholder)
 						//Ipc.ServiceConfiguration.Instance.EnsureCoreWcfHost<ControlService, IControlService>(this.BaseControlAddress);
 					} else
-					{
 						this.TryCreateControlProxy();
-					}
 					this._ping = new Timer(this.TimerCallback, this, 5000, 5000);
 
 					this.Connected?.Invoke(this, EventArgs.Empty);

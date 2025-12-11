@@ -1,14 +1,17 @@
 ﻿using System;
+using System.ServiceModel;
 #if NET8_0_OR_GREATER
 using CoreWCF;
-#else
-using System.ServiceModel;
 #endif
 using Plugin.ConfigurationHttp.Controllers.Message;
 
 namespace Plugin.ConfigurationHttp.Ipc
 {
+#if NET8_0_OR_GREATER
+	[CoreWCF.ServiceBehavior(InstanceContextMode = CoreWCF.InstanceContextMode.Single, IncludeExceptionDetailInFaults = true)]
+#else
 	[ServiceBehavior(InstanceContextMode = InstanceContextMode.Single, IncludeExceptionDetailInFaults = true)]
+#endif
 	public class PluginsIpcService : IPluginsIpcService
 	{
 		private readonly PluginsController _controller = new PluginsController(Plugin.SHost);
