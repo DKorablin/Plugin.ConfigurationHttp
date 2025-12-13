@@ -1,46 +1,50 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFrameworks>net48</TargetFrameworks>
+		<TargetFrameworks>net48;net8.0-windows</TargetFrameworks>
 		<UseWindowsForms>true</UseWindowsForms>
 		<OutputType>Library</OutputType>
 		<RootNamespace>Plugin.ConfigurationHttp</RootNamespace>
-		<Configuration>Debug</Configuration>
+		<Configuration>Release</Configuration>
 		<Deterministic>false</Deterministic>
 		<GenerateAssemblyInfo>False</GenerateAssemblyInfo>
 		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>False</GenerateDocumentationFile>
-		<NoWarn>$(NoWarn);</NoWarn>
-		<DefineConstants>$(DefineConstants)</DefineConstants>
+		<CopyLocalLockFileAssemblies>True</CopyLocalLockFileAssemblies>
+		<NoWarn>CA1416</NoWarn>
 	</PropertyGroup>
 
+	<!--nuspec-->
+	<PropertyGroup>
+		<PackageId>AlphaOmega.SAL.Plugin.ConfigurationHttp</PackageId>
+		<Version>$(Version)</Version>
+		<Title>SAL Plugin: HTTP/HTTPS Configuration UI with IPC Coordination</Title>
+		<Description>Self-hosted HTTP/HTTPS configuration plugin for SAL service applications with live settings editor, multi-process IPC coordination via named pipes, and RFC-8030 web push notifications. Supports .NET Framework 4.8 (WCF) and .NET 8 (CoreWCF). Features process discovery, grouped editable settings with metadata attributes, persistent configuration storage, and optional authentication (Basic/Digest/NTLM/Negotiate).</Description>
+		<Authors>Danila Korablin</Authors>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageReadmeFile>docs\README.md</PackageReadmeFile>
+		<PackageIcon>docs\SAL.100.png</PackageIcon>
+		<RepositoryUrl>https://github.com/DKorablin/Plugin.ConfigurationHttp</RepositoryUrl>
+		<PackageTags>SAL;Plugin;Service;Configuration;http;https;web-ui;ipc;wcf;corewcf;named-pipes;web-push;rfc8030;settings;multi-process;coordination;authentication;vapid</PackageTags>
+	</PropertyGroup>
+	
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
 		<Optimize>true</Optimize>
 		<PublishSingleFile>true</PublishSingleFile>
 		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 	</PropertyGroup>
 
+	<ItemGroup>
+		<None Include="..\README.md" Pack="true" PackagePath="\docs" />
+		<EmbeddedResource Include="..\Images.Shared\SAL.100.png" Pack="true" PackagePath="\docs" Link="Files\favicon.ico">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</EmbeddedResource>
+	</ItemGroup>
+
 	<ItemGroup Condition="'$(TargetFramework)' != 'net35'">
 		<AssemblyAttributes Include="AssemblyMetadata">
 			<_Parameter1>ProjectUrl</_Parameter1>
 			<_Parameter2>https://github.com/DKorablin/Plugin.ConfigurationHttp</_Parameter2>
 		</AssemblyAttributes>
-	</ItemGroup>
-
-	<!--nuspec-->
-	<PropertyGroup>
-		<PackageId>AlphaOmega.SAL.Plugin.ConfigurationHttp</PackageId>
-		<Version>$(Version)</Version>
-		<Title>HTTP(s) configuration plugin for service based applications</Title>
-		<Description>Configuration plugin using built in HTTP(s) server to configure service host applications on the runtime</Description>
-		<Authors>Danila Korablin</Authors>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageReadmeFile>docs\README.md</PackageReadmeFile>
-		<RepositoryUrl>https://github.com/DKorablin/Plugin.ConfigurationHttp</RepositoryUrl>
-		<PackageTags>SAL plugin server http configuration</PackageTags>
-	</PropertyGroup>
-
-	<ItemGroup>
-		<None Include="..\README.md" Pack="true" PackagePath="\docs" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -59,11 +63,24 @@
 		<Reference Include="System.Web.Extensions" />
 	</ItemGroup>
 
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
+		<!-- CoreWCF for .NET 8 named pipe IPC replacement -->
+		<PackageReference Include="CoreWCF.Primitives" />
+		<PackageReference Include="CoreWCF.Http" />
+		<PackageReference Include="CoreWCF.WebHttp" />
+		<PackageReference Include="CoreWCF.NetNamedPipe" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" />
+		<!-- System.ServiceModel for client-side -->
+		<PackageReference Include="System.ServiceModel.Primitives" />
+		<PackageReference Include="System.ServiceModel.Http" />
+		<PackageReference Include="System.ServiceModel.NetNamedPipe" />
+		<PackageReference Include="System.Configuration.ConfigurationManager" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<None Remove="Files\a.css" />
 		<None Remove="Files\b.css" />
 		<None Remove="Files\BllApi.js" />
-		<None Remove="Files\favicon.ico" />
 		<None Remove="Files\Index.html" />
 		<None Remove="Files\PushSubscriber.js" />
 		<None Remove="Files\PushWorker.js" />
@@ -74,7 +91,6 @@
 		<EmbeddedResource Include="Files\a.css" />
 		<EmbeddedResource Include="Files\b.css" />
 		<EmbeddedResource Include="Files\BllApi.js" />
-		<EmbeddedResource Include="Files\favicon.ico" />
 		<EmbeddedResource Include="Files\Index.html" />
 		<EmbeddedResource Include="Files\PushSubscriber.js" />
 		<EmbeddedResource Include="Files\PushWorker.js" />

@@ -34,8 +34,8 @@ namespace Plugin.ConfigurationHttp
 		public AuthenticationSchemes AuthenticationSchemes
 		{
 			get => this._listener == null
-					? AuthenticationSchemes.None
-					: this._listener.AuthenticationSchemes;
+				? AuthenticationSchemes.None
+				: this._listener.AuthenticationSchemes;
 			set
 			{
 				if(this._listener != null)
@@ -173,6 +173,15 @@ namespace Plugin.ConfigurationHttp
 		}
 
 		public void Dispose()
-			=> this.Stop();
+		{
+			this.Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(Boolean disposing)
+		{
+			if(disposing)
+				this.Stop();
+		}
 	}
 }

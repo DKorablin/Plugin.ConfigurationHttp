@@ -1,30 +1,44 @@
 ﻿using System;
 using System.Configuration;
+#if NETFRAMEWORK
 using System.ServiceModel;
 using System.ServiceModel.Configuration;
 using System.ServiceModel.Description;
 using System.Web.Configuration;
 using System.Web.Hosting;
+#else
+using CoreWCF;
+using CoreWCF.Configuration;
+using CoreWCF.Description;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using ServiceHost = Plugin.ConfigurationHttp.CoreWcfServiceHost;
+#endif
 
 namespace Plugin.ConfigurationHttp.Ipc
 {
-	public sealed class ServiceConfiguration
+	internal sealed class ServiceConfiguration
 	{
+#if NETFRAMEWORK
 		private readonly ServiceModelSectionGroup _serviceModelGroup;
+#endif
 
 		public static readonly ServiceConfiguration Instance = new ServiceConfiguration();
 
 		private ServiceConfiguration()
 		{
+#if NETFRAMEWORK
 			Configuration configuration = HostingEnvironment.IsHosted
 				? WebConfigurationManager.OpenWebConfiguration("~")
 				: ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 
 			this._serviceModelGroup = configuration == null ? null : ServiceModelSectionGroup.GetSectionGroup(configuration);
+#endif
 		}
 
 		public ServiceHost Create<TService, TEndpoint>(String baseAddress, String address)
 		{
+#if NETFRAMEWORK
 			if(this.CheckServiceConfiguration<TEndpoint>())
 				return new ServiceHost(typeof(TService));
 			else
@@ -39,7 +53,40 @@ namespace Plugin.ConfigurationHttp.Ipc
 
 				return result;
 			}
+#else
+			ServiceHost result = new ServiceHost(typeof(TService), new Uri(baseAddress));
+
+			NetNamedPipeBinding binding = new NetNamedPipeBinding(NetNamedPipeSecurityMode.None)
+			{
+				ReceiveTimeout = TimeSpan.MaxValue,
+			};
+			ServiceEndpoint endpoint = result.AddServiceEndpoint(typeof(TEndpoint), binding, address);
+
+			return result;
+#endif
 		}
+
+#if NET8_0_OR_GREATER
+		private IHost _coreWcfHost;
+
+		public IHost EnsureCoreWcfHost<TService, TEndpoint>(String baseAddress) where TService : class
+		{
+			if (this._coreWcfHost != null)
+				return this._coreWcfHost;
+
+			this._coreWcfHost = Host.CreateDefaultBuilder()
+				.ConfigureServices(services =>
+				{
+					services.AddServiceModelServices();
+					services.AddServiceModelMetadata();
+					services.AddSingleton<TService>();
+				})
+				.Build();
+
+			this._coreWcfHost.Start();
+			return this._coreWcfHost;
+		}
+#else
 
 		private Boolean CheckClientConfiguration<TEndpoint>()
 		{
@@ -68,5 +115,6 @@ namespace Plugin.ConfigurationHttp.Ipc
 
 			return false;
 		}
+#endif
 	}
 }

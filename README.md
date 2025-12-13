@@ -12,6 +12,27 @@ Provides a self-hosted HTTP/HTTPS endpoint (default: 8180) exposing:
 
 If multiple host processes run on the same machine the first process becomes the control host. Subsequent processes discover it and coordinate via a named pipe IPC channel, avoiding port collisions and enabling cross‑process plugin enumeration.
 
+## Installation
+To install the Configuration HTTP Plugin, follow these steps:
+1. Download the latest release from the [Releases](https://github.com/DKorablin/Plugin.ReflectionSearch/releases)
+2. Extract the downloaded ZIP file to a desired location.
+3. Use the provided [Flatbed.Dialog (Lite)](https://dkorablin.github.io/Flatbed-Dialog-Lite) executable or download one of the supported host applications:
+	- [Flatbed.Dialog](https://dkorablin.github.io/Flatbed-Dialog)
+	- [Flatbed.MDI](https://dkorablin.github.io/Flatbed-MDI)
+	- [Flatbed.MDI (WPF)](https://dkorablin.github.io/Flatbed-MDI-Avalon)
+	- [Flatbed.WorkerService](https://dkorablin.github.io/Flatbed-WorkerService)
+5. Grant permission for the application to use the specified HTTP/HTTPS port (or run the application in the Administrative mode):
+	- Open Command Prompt as Administrator
+	- Run the following command, replacing `{hostUrl}` with your configured host URL (e.g., `https://+:8180/`):
+	  ```
+	  netsh http add urlacl url={hostUrl} user={Environment.UserDomainName}\\{Environment.UserName}
+	  ```
+6. To use HTTPS, ensure a valid SSL certificate is bound to the specified port. You can use the following command to bind a certificate:
+	```
+	netsh http add sslcert ipport=[ipAddress]:8180 certhash=[thumbprint] appid={d10da6bc-77fd-4ada-8b3f-b850023e59ae}
+	```
+7. Launch the host application and optionally set Users[] and AuthenticationSchemes.
+
 ## Architecture
 * Plugin.cs – Entry point implementing IPlugin & IPluginSettings. Creates and connects ServiceFactory (HTTP + IPC surfaces) using a resolved host URL (supports token substitution for local IP).
 * PluginSettings – Strongly typed configuration (authentication schemes, users list, host URL template, push keys, etc.). Performs runtime formatting (e.g. replacing {ip} template) and authentication checks.
@@ -21,10 +42,10 @@ If multiple host processes run on the same machine the first process becomes the
 * Tracing – Custom TraceSource and WebPushTraceListener unify plugin log output with host listeners; Start/Warning events for lifecycle and faults.
 
 ## Settings Model
-Each plugin supplying IPluginSettings is inspected. Property metadata used:
+Each plugin supplying `IPluginSettings` is inspected. Property metadata used:
 * [DisplayName], [Description], [DefaultValue], [ReadOnly]
 * Type conversion via TypeDescriptor (supports primitives, TimeSpan, nullable TimeSpan)
-Edited values are validated through type converters then persisted: host.Plugins.Settings(plugin).SaveAssemblyParameter(name,value).
+Edited values are validated through type converters then persisted: `host.Plugins.Settings(plugin).SaveAssemblyParameter(name,value)`.
 
 ## Authentication
 PluginSettings.Authenticate(principal) enforces schemes and optional internal allow‑list (Users[]). Anonymous or None schemes bypass checks. Caller identity must be authenticated when a scheme requires it.
@@ -46,8 +67,8 @@ Packaging script (Build-ReleasePackage.ps1):
 4. Merge dependency files, produce versioned zip: {Solution}_v{Version}_{Framework}.zip.
 
 ## Developer Notes
-* Host URL may contain a template constant (see PluginSettings.Constants.TemplateIpAddr) substituted with local IPv4.
-* Add new settings by extending PluginSettings; mark with attributes for richer UI metadata.
+* Host URL may contain a template constant (see `PluginSettings.Constants.TemplateIpAddr`) substituted with local IPv4.
+* Add new settings by extending `PluginSettings`; mark with attributes for richer UI metadata.
 * Trace: use Plugin.Trace.TraceEvent(type,id,message,...) for consistent output.
 * Exceptions during property set are caught; inner exception message returned to UI.
 * TimeSpan values: serialized invariant ("c" format) – ensure client supplies same format.
@@ -62,16 +83,6 @@ Packaging script (Build-ReleasePackage.ps1):
 * Limit Users[] and avoid Anonymous where sensitive configuration exists.
 * Protect web‑push VAPID keys; stored in settings (trimmed on assignment).
 * Named pipes are local only; still validate process IDs if adding privileged operations.
-
-## Quick Start
-1. Reference plugin in host and load via SAL plugin mechanism.
-2. Configure HostUrl (optionally using {ip}).
-3. Optionally set Users[] and AuthenticationSchemes.
-4. Start host; navigate to https://{host}:8180/ (or configured port) to view and edit settings.
-5. Modify settings; changes persist immediately.
-
-## License / Copyright
-Copyright © Danila Korablin 2019-2025. See repository for license details.
 
 ---
 For additional frameworks or custom build targets extend the release script and workflows accordingly.

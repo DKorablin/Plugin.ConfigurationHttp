@@ -2,6 +2,11 @@
 using System.Diagnostics;
 using System.Linq;
 using SAL.Flatbed;
+#if NET8_0_OR_GREATER
+using CoreWCF;
+#else
+using System.ServiceModel;
+#endif
 
 namespace Plugin.ConfigurationHttp
 {
@@ -33,7 +38,7 @@ namespace Plugin.ConfigurationHttp
 			}
 		}
 
-		public Boolean IsStarted => this._server.State == System.ServiceModel.CommunicationState.Opening;
+		public Boolean IsStarted => this._server.State == CommunicationState.Opening;
 
 		public Plugin(IHost host)
 			=> Plugin.SHost = this.Host = host ?? throw new ArgumentNullException(nameof(host));

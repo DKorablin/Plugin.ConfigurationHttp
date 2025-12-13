@@ -77,52 +77,52 @@ BllApi.prototype = {
 
 		// Recursively build complex object view (read-only leafs if parent is read-only or unknown type)
 		_buildComplexObject: function(rootItem, value, evtPropertyChanged, readOnly){
-			var wrapper = document.createElement('DIV');
-			wrapper.className = 'complex';
+			var wrapper = document.createElement("DIV");
+			wrapper.className = "complex";
 			for(var key in value){
 				if(!value.hasOwnProperty(key)) continue;
-				var row = document.createElement('DIV');
-				row.className = 'complex-row';
-				var lbl = document.createElement('SPAN');
-				lbl.className = 'complex-key';
-				lbl.innerHTML = key + ':'; 
+				var row = document.createElement("DIV");
+				row.className = "complex-row";
+				var lbl = document.createElement("SPAN");
+				lbl.className = "complex-key";
+				lbl.innerHTML = key + ":";
 				row.appendChild(lbl);
 				var val = value[key];
 				var ctrl;
 				if(this._isPlainObject(val)){
 					ctrl = this._buildComplexObject(rootItem, val, evtPropertyChanged, true); // nested objects read-only for now
 				}else if(Array.isArray(val)){
-					ctrl = document.createElement('DIV');
-					ctrl.className='complex-array';
+					ctrl = document.createElement("DIV");
+					ctrl.className="complex-array";
 					for(var i=0;i<val.length;i++){
 						var aItem = val[i];
-						var aRow = document.createElement('DIV');
-						aRow.className='complex-array-item';
+						var aRow = document.createElement("DIV");
+						aRow.className="complex-array-item";
 						if(this._isPlainObject(aItem))
 							aRow.appendChild(this._buildComplexObject(rootItem, aItem, evtPropertyChanged, true));
 						else{
-							var pre = document.createElement('PRE');
-							pre.innerHTML = aItem === null ? 'null' : aItem.toString();
+							var pre = document.createElement("PRE");
+							pre.innerHTML = aItem === null ? "null" : aItem.toString();
 							aRow.appendChild(pre);
 						}
 						ctrl.appendChild(aRow);
 					}
 				}else{
 					// primitive
-					if(typeof val === 'boolean'){
-						ctrl = document.createElement('INPUT');
-						ctrl.type='checkbox';
+					if(typeof val === "boolean"){
+						ctrl = document.createElement("INPUT");
+						ctrl.type="checkbox";
 						ctrl.checked = val;
 						ctrl.disabled = true; // read-only for nested editing scope
-					}else if(typeof val === 'number'){
-						ctrl = document.createElement('INPUT');
-						ctrl.type='number';
+					}else if(typeof val === "number"){
+						ctrl = document.createElement("INPUT");
+						ctrl.type="number";
 						ctrl.value = val;
 						ctrl.readOnly = true;
 					}else{
-						ctrl = document.createElement('INPUT');
-						ctrl.type='text';
-						ctrl.value = val === null ? 'null' : val.toString();
+						ctrl = document.createElement("INPUT");
+						ctrl.type="text";
+						ctrl.value = val === null ? "null" : val.toString();
 						ctrl.readOnly = true;
 					}
 				}
@@ -135,19 +135,19 @@ BllApi.prototype = {
 		CreateSettingsCtrl: function (item, evtPropertyChanged) {
 			var result;
 			// Complex object rendering (non-null object Value, not primitive, not handled types)
-			if(item && item.Value && typeof item.Value === 'object' && !Array.isArray(item.Value) && [
-				'System.Boolean','System.SByte','System.UInt16','System.Int16','System.UInt32','System.Int32','System.UInt64','System.Int64','System.TimeSpan'
+			if(item && item.Value && typeof item.Value === "object" && !Array.isArray(item.Value) && [
+				"System.Boolean","System.SByte","System.UInt16","System.Int16","System.UInt32","System.Int32","System.UInt64","System.Int64","System.TimeSpan"
 			].indexOf(item.Type) === -1){
-				result = document.createElement('DIV');
-				result.className='complex-root';
-				var header = document.createElement('DIV');
-				header.className='complex-header';
-				header.innerHTML = '{object}';
+				result = document.createElement("DIV");
+				result.className="complex-root";
+				var header = document.createElement("DIV");
+				header.className="complex-header";
+				header.innerHTML = "{object}";
 				var content = this._buildComplexObject(item, item.Value, evtPropertyChanged, !item.CanWrite);
-				content.style.display = 'none'; // hidden by default
+				content.style.display = "none"; // hidden by default
 				header.onclick = function(){
-					content.style.display = content.style.display==='none' ? '' : 'none';
-					this.className = content.style.display==='none' ? 'complex-header collapsed' : 'complex-header expanded';
+					content.style.display = content.style.display==="none" ? "" : "none";
+					this.className = content.style.display==="none" ? "complex-header collapsed" : "complex-header expanded";
 				};
 				result.appendChild(header);
 				result.appendChild(content);
@@ -300,8 +300,8 @@ BllApi.prototype = {
 		var _this = this;
 
 		var ajax = instanceId
-			? { Method: "POST", Url: "/SetPluginParams/?instanceId=" + instanceId + "&pluginId=" + pluginId + "&paramName=" + paramName, Params: "value=" + value, }
-			: { Method: "POST", Url: "/SetPluginParams/?pluginId=" + pluginId + "&paramName=" + paramName, Params: "value=" + value, };
+			? { Method: "POST", Url: "/SetPluginParams/?instanceId=" + instanceId + "&pluginId=" + pluginId + "&paramName=" + paramName, Params: "value=" + encodeURIComponent(value), }
+			: { Method: "POST", Url: "/SetPluginParams/?pluginId=" + pluginId + "&paramName=" + paramName, Params: "value=" + encodeURIComponent(value), };
 		var request = Utils.Async.LoadAsync(ajax, (data) => _this.i.OnRawResponseI(data, callback));
 
 		this.i.SetRequestLog(request);

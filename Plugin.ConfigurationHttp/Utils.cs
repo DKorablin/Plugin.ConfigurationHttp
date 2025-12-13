@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using SAL.Flatbed;
 
@@ -44,6 +46,22 @@ namespace Plugin.ConfigurationHttp
 					break;
 			}
 			return result;
+		}
+
+		/// <summary>Get a deterministic hash code for a string that is consistent across .NET Framework and .NET Core/.NET 5+</summary>
+		/// <param name="value">The string to hash</param>
+		/// <returns>A deterministic 32-bit hash code</returns>
+		public static Int32 GetDeterministicHashCode(String value)
+		{
+			if(String.IsNullOrEmpty(value))
+				return 0;
+
+			using(MD5 md5 = MD5.Create())
+			{
+				Byte[] hash = md5.ComputeHash(Encoding.UTF8.GetBytes(value));
+				// Take first 4 bytes and convert to Int32
+				return BitConverter.ToInt32(hash, 0);
+			}
 		}
 
 		#region Search

@@ -1,0 +1,34 @@
+{
+  "profiles": {
+    "Flatbed.MDI net35": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Visual Studio Projects\\C#\\SAL\\bin\\Flatbed.MDI\\net35\\Flatbed.MDI.exe",
+      "commandLineArgs": "\"/SAL_Path:C:\\Visual Studio Projects\\C#\\SAL\\Plugins\\bin\"",
+      "workingDirectory": "C:\\Visual Studio Projects\\C#\\SAL\\bin\\Flatbed.MDI\\net35"
+    },
+    "Flatbed.MDI net80": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Visual Studio Projects\\C#\\SAL\\bin\\Flatbed.MDI\\net8.0-windows\\Flatbed.MDI.exe",
+      "commandLineArgs": "\"/SAL_Path:C:\\Visual Studio Projects\\C#\\SAL\\Plugins\\bin\"",
+      "workingDirectory": "C:\\Visual Studio Projects\\C#\\SAL\\bin\\Flatbed.MDI\\net8.0-windows"
+    },
+    "Flatbed.MDI.Avalon": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Visual Studio Projects\\C#\\SAL\\bin\\Flatbed.MDI.Avalon\\net8.0-windows\\Flatbed.MDI.Avalon.exe",
+      "commandLineArgs": "\"/SAL_Path:C:\\Visual Studio Projects\\C#\\SAL\\Plugins\\bin\"",
+      "workingDirectory": "C:\\Visual Studio Projects\\C#\\SAL\\bin\\Flatbed.MDI.Avalon\\net8.0-windows\\"
+    },
+    "Flatbed.Dialog net35": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Visual Studio Projects\\C#\\SAL\\bin\\Flatbed.Dialog\\net35\\Flatbed.Dialog.exe",
+      "commandLineArgs": "\"/SAL_Path:C:\\Visual Studio Projects\\C#\\SAL\\Plugins\\bin\"",
+      "workingDirectory": "C:\\Visual Studio Projects\\C#\\SAL\\bin\\Flatbed.Dialog\\net35"
+    },
+    "Flatbed.Dialog net80": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Visual Studio Projects\\C#\\SAL\\bin\\Flatbed.Dialog\\net8.0-windows\\Flatbed.Dialog.exe",
+      "commandLineArgs": "\"/SAL_Path:C:\\Visual Studio Projects\\C#\\SAL\\Plugins\\bin\"",
+      "workingDirectory": "C:\\Visual Studio Projects\\C#\\SAL\\bin\\Flatbed.Dialog\\net8.0-windows"
+    },
+  }
+}
