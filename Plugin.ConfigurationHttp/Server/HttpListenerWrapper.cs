@@ -173,6 +173,14 @@ namespace Plugin.ConfigurationHttp
 		}
 
 		public void Dispose()
+		{
+			this.Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		/// <summary>Dispose managed objects</summary>
+		/// <param name="disposing">Dispose managed objects</param>
+		protected virtual void Dispose(Boolean disposing)
 			=> this.Stop();
 	}
 }
