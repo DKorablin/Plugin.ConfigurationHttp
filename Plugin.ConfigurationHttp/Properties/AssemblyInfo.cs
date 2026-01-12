@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 [assembly: System.CLSCompliant(true)]
 
 [assembly: AssemblyDescription("Web UI for service based plugins configuration")]
+
 /*
 Register SSL Certificate:
 certhash -> thumbprint
