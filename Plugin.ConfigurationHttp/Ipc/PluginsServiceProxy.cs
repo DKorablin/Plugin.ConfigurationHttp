@@ -8,8 +8,7 @@ namespace Plugin.ConfigurationHttp.Ipc
 		public IPluginsIpcService Plugins => base.Channel;
 
 		public PluginsServiceProxy(String address)
-			: base(new NetNamedPipeBinding(NetNamedPipeSecurityMode.None),
-			new EndpointAddress(address))
+			: base(new NetNamedPipeBinding(NetNamedPipeSecurityMode.None), new EndpointAddress(address))
 		{ }
 	}
 }

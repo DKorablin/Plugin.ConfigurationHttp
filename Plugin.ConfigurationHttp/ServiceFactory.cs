@@ -1,11 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Net;
 using System.Security.Principal;
+using System.Threading;
+using System.Net;
+#if NETFRAMEWORK
 using System.ServiceModel;
 using System.ServiceModel.Description;
-using System.Threading;
+#else
+using CoreWCF;
+using CoreWCF.Description;
+using Microsoft.Extensions.DependencyInjection;
+using CommunicationState = CoreWCF.CommunicationState;
+using ServiceHost = Plugin.ConfigurationHttp.CoreWcfServiceHost;
+#endif
 using Plugin.ConfigurationHttp.Controllers.Message;
 using Plugin.ConfigurationHttp.Ipc;
 using Plugin.ConfigurationHttp.Ipc.Control;
@@ -19,37 +27,21 @@ namespace Plugin.ConfigurationHttp
 
 		private readonly Plugin _plugin;
 		private IpcSingleton _ipc;
+
 		private ServiceHost _controlHost;
+
 		private HttpServerFacade _controlWebHost;
 		private ControlServiceProxy _controlProxy;
 		private String _hostUrl;
 		private Timer _ping;
 		private readonly Object ObjLock = new Object();
 
-		private String BaseAddress => "net.pipe://" + Environment.MachineName + "/Plugin.ConfigurationHttp" + this._hostUrl.GetHashCode();
-		private String BaseControlAddress => this.BaseAddress + "/Control";
+		private String BaseControlAddress => $"net.pipe://{Environment.MachineName}/Plugin.ConfigurationHttp{Utils.GetDeterministicHashCode(this._hostUrl)}/Control";
 
-		public Boolean IsHost => this._controlHost != null;
+		public Boolean IsHost => this._controlWebHost != null; // CoreWCF hosted inside generic host
 		public event EventHandler<EventArgs> Connected;
 
-		public CommunicationState State
-		{
-			get
-			{
-				if(this._controlHost != null && this._controlWebHost != null)
-				{
-					CommunicationState webState = this._controlWebHost.IsListening
-						? CommunicationState.Opened
-						: CommunicationState.Closed;
-					if(this._controlHost.State != webState)
-						return CommunicationState.Faulted;//If both are not running, then we return an error.
-
-					return this._controlHost.State;
-				} else if(this._controlProxy != null)
-					return this._controlProxy.State;
-				else return CommunicationState.Closed;
-			}
-		}
+		public CommunicationState State => this._controlWebHost != null && this._controlWebHost.IsListening ? CommunicationState.Opened : CommunicationState.Closed;
 
 		public ServiceFactory(Plugin plugin)
 			=> this._plugin = plugin ?? throw new ArgumentNullException(nameof(plugin));
@@ -109,7 +101,7 @@ namespace Plugin.ConfigurationHttp
 				this._controlProxy = new ControlServiceProxy(this.BaseControlAddress, "Host");
 				this._controlProxy.Open();
 				this._controlProxy.CreateClientHost();
-			} catch(EndpointNotFoundException exc)
+			} catch(System.ServiceModel.EndpointNotFoundException exc)
 			{
 				exc.Data.Add(nameof(this._hostUrl), this._hostUrl);
 				exc.Data.Add(nameof(this.BaseControlAddress), this.BaseControlAddress + "/Host");
@@ -124,7 +116,7 @@ namespace Plugin.ConfigurationHttp
 				throw new ArgumentNullException(nameof(hostUrl));
 
 			this._hostUrl = hostUrl;
-			this._ipc = new IpcSingleton("Global\\Plugin.ConfigurationHttp." + this._hostUrl.GetHashCode(), new TimeSpan(0, 0, 10));
+			this._ipc = new IpcSingleton("Global\\Plugin.ConfigurationHttp." + Utils.GetDeterministicHashCode(this._hostUrl), new TimeSpan(0, 0, 10));
 			this._ipc.Mutex<Object>(null, p =>
 			{
 				try
@@ -134,10 +126,11 @@ namespace Plugin.ConfigurationHttp
 						this._controlHost = Ipc.ServiceConfiguration.Instance.Create<ControlService, IControlService>(this.BaseControlAddress, "Host");
 						this._controlHost.Open();
 						this._controlHost.Faulted += (sender, e) => Plugin.Trace.TraceEvent(TraceEventType.Error, 10, "ControlHost is in faulted state");
+
+						// Initialize CoreWCF host (simplified: control service host creation placeholder)
+						//Ipc.ServiceConfiguration.Instance.EnsureCoreWcfHost<ControlService, IControlService>(this.BaseControlAddress);
 					} else
-					{
 						this.TryCreateControlProxy();
-					}
 					this._ping = new Timer(this.TimerCallback, this, 5000, 5000);
 
 					this.Connected?.Invoke(this, EventArgs.Empty);
@@ -166,53 +159,48 @@ namespace Plugin.ConfigurationHttp
 
 		public void Dispose()
 		{
-			Stopwatch sw = new Stopwatch();
-			sw.Start();
-			CommunicationState state = this.State;
-			lock(ObjLock)
+			this.Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(Boolean disposing)
+		{
+			if(disposing)
 			{
-				if(this._ping != null)
+				Stopwatch sw = new Stopwatch();
+				sw.Start();
+
+				CommunicationState state = this.State;
+				lock(ObjLock)
 				{
-					this._ping.Dispose();
-					this._ping = null;
+					if(this._ping != null)
+					{
+						this._ping.Dispose();
+						this._ping = null;
+					}
+
+					AbortServiceHost(nameof(this._controlWebHost), this._controlWebHost, p => p.Stop());
+
+					AbortServiceHost(nameof(this._controlProxy), this._controlProxy, p => p.DisconnectControlHost());
+
+					AbortServiceHost(nameof(this._controlHost), this._controlHost, p => p.Abort());
 				}
 
-				if(this._controlWebHost != null)
-					try
-					{
-
-						this._controlWebHost.Stop();
-						this._controlWebHost = null;
-					} catch(CommunicationObjectFaultedException exc)
-					{
-						Plugin.Trace.TraceEvent(TraceEventType.Warning, 5, "_controlWebHost Dispose exception: " + exc.Message);
-					}
-
-				if(this._controlProxy != null)
-					try
-					{
-
-						this._controlProxy.DisconnectControlHost();
-						this._controlProxy = null;
-					} catch(CommunicationObjectFaultedException exc)
-					{
-						Plugin.Trace.TraceEvent(TraceEventType.Warning, 5, "_controlProxy Dispose exception: " + exc.Message);
-					}
-
-				if(this._controlHost != null)
-					try
-					{
-
-						this._controlHost.Abort();
-						this._controlHost = null;
-					} catch(CommunicationObjectFaultedException exc)
-					{
-						Plugin.Trace.TraceEvent(TraceEventType.Warning, 5, "_controlHost Dispose exception: " + exc.Message);
-					}
+				sw.Stop();
+				Plugin.Trace.TraceEvent(TraceEventType.Verbose, 7, "Destroyed. State: {0} Elapsed: {1} ", state, sw.Elapsed);
 			}
+		}
 
-			sw.Stop();
-			Plugin.Trace.TraceEvent(TraceEventType.Verbose, 7, "Destroyed. State: {0} Elapsed: {1} ", state, sw.Elapsed);
+		private static void AbortServiceHost<T>(String name, T service, Action<T> method) where T : class
+		{
+			if(service != null)
+				try
+				{
+					method(service);
+				} catch(System.ServiceModel.CommunicationObjectFaultedException exc)
+				{
+					Plugin.Trace.TraceEvent(TraceEventType.Warning, 5, name + " Dispose exception: " + exc.Message);
+				}
 		}
 
 		private void TimerCallback(Object state)

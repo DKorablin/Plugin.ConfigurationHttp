@@ -2,10 +2,15 @@
 using System.Diagnostics;
 using System.IO;
 using System.ServiceModel;
+#if NETFRAMEWORK
+using ServiceHost = System.ServiceModel.ServiceHost;
+#else
+using ServiceHost = Plugin.ConfigurationHttp.CoreWcfServiceHost;
+#endif
 
 namespace Plugin.ConfigurationHttp.Ipc.Control
 {
-	public class ControlServiceProxy : ClientBase<IControlService>
+	internal class ControlServiceProxy : ClientBase<IControlService>
 	{
 		private readonly Int32 _processId = Process.GetCurrentProcess().Id;
 		private readonly String _baseHostAddress;
@@ -21,7 +26,7 @@ namespace Plugin.ConfigurationHttp.Ipc.Control
 
 		public ControlServiceProxy(String baseAddress, String address)
 			: base(new NetNamedPipeBinding(NetNamedPipeSecurityMode.None),
-				new EndpointAddress(baseAddress + "/" + address))
+				new EndpointAddress(baseAddress))
 		{
 			this._baseHostAddress = baseAddress;
 			this._relativeAddress = address;
@@ -29,7 +34,6 @@ namespace Plugin.ConfigurationHttp.Ipc.Control
 
 		public void CreateClientHost()
 		{
-
 			ServiceHost pluginsHost = ServiceConfiguration.Instance.Create<PluginsIpcService, IPluginsIpcService>(this.ClientBaseAddress, "Plugins");
 			pluginsHost.Faulted += this.NotifyHost_Faulted;
 			pluginsHost.Open();

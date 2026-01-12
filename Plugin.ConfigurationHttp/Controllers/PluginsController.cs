@@ -65,7 +65,7 @@ namespace Plugin.ConfigurationHttp
 
 			try
 			{
-				Object objValue = TypeDescriptor.GetConverter(prop.PropertyType).ConvertFromInvariantString(value);
+				Object objValue = TypeDescriptor.GetConverter(prop.PropertyType).ConvertFromInvariantString(Uri.UnescapeDataString(value));
 				prop.SetValue(settings.Settings, objValue, null);
 				objValue = prop.GetValue(settings.Settings, null);//I get the value back because the property may not change.
 				this._host.Plugins.Settings(plugin.Instance).SaveAssemblyParameter(prop.Name, objValue);
@@ -107,7 +107,7 @@ namespace Plugin.ConfigurationHttp
 			if(proxy == null)
 				return new ErrorResponse("Instance not found");
 			else
-				return proxy.Plugins.SetPluginParams(pluginId, paramName, value);
+				return proxy.Plugins.SetPluginParams(pluginId, paramName, Uri.UnescapeDataString(value));
 		}
 
 		private PluginsServiceProxy GetProxy(String instance)
