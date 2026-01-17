@@ -1,13 +1,17 @@
 ﻿using System;
-using System.ServiceModel;
 using Plugin.ConfigurationHttp.Controllers.Message;
+using SAL.Flatbed;
 
 namespace Plugin.ConfigurationHttp.Ipc
 {
-	[ServiceBehavior(InstanceContextMode = InstanceContextMode.Single, IncludeExceptionDetailInFaults = true)]
 	public class PluginsIpcService : IPluginsIpcService
 	{
-		private readonly PluginsController _controller = new PluginsController(Plugin.SHost);
+		private readonly PluginsController _controller;
+
+		internal PluginsIpcService(IHost host, ServiceFactory factory)
+		{
+			this._controller= new PluginsController(host, factory);
+		}
 
 		public PluginResponse[] GetPlugins(String searchText)
 			=> this._controller.GetPlugins(searchText);

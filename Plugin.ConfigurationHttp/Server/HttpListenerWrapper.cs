@@ -34,8 +34,8 @@ namespace Plugin.ConfigurationHttp
 		public AuthenticationSchemes AuthenticationSchemes
 		{
 			get => this._listener == null
-					? AuthenticationSchemes.None
-					: this._listener.AuthenticationSchemes;
+				? AuthenticationSchemes.None
+				: this._listener.AuthenticationSchemes;
 			set
 			{
 				if(this._listener != null)
@@ -181,6 +181,9 @@ namespace Plugin.ConfigurationHttp
 		/// <summary>Dispose managed objects</summary>
 		/// <param name="disposing">Dispose managed objects</param>
 		protected virtual void Dispose(Boolean disposing)
-			=> this.Stop();
+		{
+			if(disposing)
+				this.Stop();
+		}
 	}
 }
