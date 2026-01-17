@@ -19,6 +19,9 @@ namespace Plugin.ConfigurationHttp
 		private IRegisterServer _registerServer;
 		private IWorkerServer _workerServer;
 		private String IpcRegistryPipeName => "Plugin.ConfigurationHttp.Registry." + Utils.GetDeterministicHashCode(this._hostUrl);
+		private static String IpcWorkerPipeName => "Plugin.ConfigurationHttp.Worker.";
+		private static String IpcWorkerPipeId => Process.GetCurrentProcess().Id.ToString();
+		private String MutexName => "Global\\Plugin.ConfigurationHttp." + Utils.GetDeterministicHashCode(this._hostUrl);
 
 
 		public Boolean IsHost => this._registerServer != null;
@@ -56,7 +59,7 @@ namespace Plugin.ConfigurationHttp
 				throw new ArgumentNullException(nameof(hostUrl));
 
 			this._hostUrl = hostUrl;
-			IpcSingleton ipc = new IpcSingleton("Global\\Plugin.ConfigurationHttp." + Utils.GetDeterministicHashCode(this._hostUrl), new TimeSpan(0, 0, 10));
+			IpcSingleton ipc = new IpcSingleton(this.MutexName, new TimeSpan(0, 0, 10));
 
 			// Fire and forget to avoid blocking the caller
 			_ = Task.Run(async () =>
@@ -83,7 +86,7 @@ namespace Plugin.ConfigurationHttp
 						} else
 						{
 							var ipcPlugins = new PluginsIpcService(this._plugin.Host, this);
-							this._workerServer = new WorkerServer(this.IpcRegistryPipeName, "Plugin.ConfigurationHttp.Worker.", Process.GetCurrentProcess().Id.ToString(), ipcPlugins);
+							this._workerServer = new WorkerServer(this.IpcRegistryPipeName, IpcWorkerPipeName, IpcWorkerPipeId, ipcPlugins);
 
 							// Subscribe to connection loss before starting
 							this._workerServer.ConnectionLost += () => this.OnWorkerServerConnectionLostAsync(token);
