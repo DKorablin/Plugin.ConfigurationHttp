@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using SAL.Flatbed;
 
 namespace Plugin.ConfigurationHttp
@@ -10,6 +11,7 @@ namespace Plugin.ConfigurationHttp
 		private static TraceSource _trace;
 		private ServiceFactory _server;
 		internal static PluginSettings _settings;
+		private readonly CancellationTokenSource _serverTokenSource = new CancellationTokenSource();
 
 		internal IHost Host { get; }
 		internal static IHost SHost { get; private set; }
@@ -33,8 +35,6 @@ namespace Plugin.ConfigurationHttp
 			}
 		}
 
-		public Boolean IsStarted => this._server.State == System.ServiceModel.CommunicationState.Opening;
-
 		public Plugin(IHost host)
 			=> Plugin.SHost = this.Host = host ?? throw new ArgumentNullException(nameof(host));
 
@@ -42,7 +42,7 @@ namespace Plugin.ConfigurationHttp
 		{
 			this._server = new ServiceFactory(this);
 			this._server.Connected += this.Server_Connected;
-			this._server.Connect(this.Settings.GetHostUrl());
+			this._server.Connect(this.Settings.GetHostUrl(), this._serverTokenSource.Token);
 			return true;
 		}
 
@@ -53,6 +53,7 @@ namespace Plugin.ConfigurationHttp
 		{
 			if(this._server != null)
 			{
+				this._serverTokenSource.Cancel();
 				this._server.Dispose();
 				this._server = null;
 			}

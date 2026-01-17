@@ -12,11 +12,16 @@ namespace Plugin.ConfigurationHttp
 	internal class PluginsController
 	{
 		private readonly IHost _host;
-		public PluginsController(IHost host)
-			=> this._host = host;
+		private readonly ServiceFactory _serviceFactory;
 
-		public Int32[] GetInstance()
-			=> ServiceFactory.Proxies.Keys.ToArray();
+		public PluginsController(IHost host, ServiceFactory serviceFactory)
+		{
+			this._host = host;
+			this._serviceFactory = serviceFactory;
+		}
+
+		public String[] GetInstance()
+			=> this._serviceFactory.Proxies.ToArray();
 
 		public PluginResponse[] GetPlugins(String searchText)
 		{
@@ -65,7 +70,7 @@ namespace Plugin.ConfigurationHttp
 
 			try
 			{
-				Object objValue = TypeDescriptor.GetConverter(prop.PropertyType).ConvertFromInvariantString(value);
+				Object objValue = TypeDescriptor.GetConverter(prop.PropertyType).ConvertFromInvariantString(Uri.UnescapeDataString(value));
 				prop.SetValue(settings.Settings, objValue, null);
 				objValue = prop.GetValue(settings.Settings, null);//I get the value back because the property may not change.
 				this._host.Plugins.Settings(plugin.Instance).SaveAssemblyParameter(prop.Name, objValue);
@@ -85,35 +90,33 @@ namespace Plugin.ConfigurationHttp
 		#region Ipc
 		public Object GetPlugins(String searchText, String instanceId)
 		{
-			PluginsServiceProxy proxy = this.GetProxy(instanceId);
+			IPluginsIpcService proxy = this.GetProxy(instanceId);
 			if(proxy == null)
 				return new ErrorResponse("Instance not found");
 			else
-				return proxy.Plugins.GetPlugins(searchText);
+				return proxy.GetPlugins(searchText);
 		}
 
 		public Object GetPluginParams(String instanceId, String pluginId)
 		{
-			PluginsServiceProxy proxy = this.GetProxy(instanceId);
+			IPluginsIpcService proxy = this.GetProxy(instanceId);
 			if(proxy == null)
 				return new ErrorResponse("Instance not found");
 			else
-				return proxy.Plugins.GetPluginParams(pluginId);
+				return proxy.GetPluginParams(pluginId);
 		}
 
 		public Object SetPluginParams(String instanceId, String pluginId, String paramName, String value)
 		{
-			PluginsServiceProxy proxy = this.GetProxy(instanceId);
+			IPluginsIpcService proxy = this.GetProxy(instanceId);
 			if(proxy == null)
 				return new ErrorResponse("Instance not found");
 			else
-				return proxy.Plugins.SetPluginParams(pluginId, paramName, value);
+				return proxy.SetPluginParams(pluginId, paramName, Uri.UnescapeDataString(value));
 		}
 
-		private PluginsServiceProxy GetProxy(String instance)
-			=> Int32.TryParse(instance, out Int32 instanceId)
-				&& ServiceFactory.Proxies.TryGetValue(instanceId, out PluginsServiceProxy result)
-				? result : null;
+		private IPluginsIpcService GetProxy(String instance)
+			=> this._serviceFactory.GetWorkerInstance(instance);
 		#endregion Ipc
 	}
 }

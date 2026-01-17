@@ -15,7 +15,7 @@ namespace Plugin.ConfigurationHttp
 {
 	public class PluginSettings : INotifyPropertyChanged
 	{
-		private class PushMessage
+		private sealed class PushMessage
 		{
 			public String Title { get; set; }
 			public String Description { get; set; }
@@ -89,7 +89,7 @@ namespace Plugin.ConfigurationHttp
 			}
 
 			public override Int32 GetHashCode()
-				=> this.Endpoint == null ? 0 : this.Endpoint.GetHashCode();
+				=> this.Endpoint == null ? 0 : Utils.GetDeterministicHashCode(this.Endpoint);
 		}
 
 		private static class Constants

@@ -1,42 +1,29 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Reflection;
-using System.Runtime.Serialization;
-using System.Globalization;
 
 namespace Plugin.ConfigurationHttp.Controllers.Message
 {
-	[DataContract]
 	public class SettingsResponse
 	{
-		[DataMember]
 		public String Name { get; private set; }
 
-		[DataMember(EmitDefaultValue=false)]
 		public String DisplayName { get; private set; }
 
-		[DataMember]
 		public String Type { get; private set; }
 
-		[DataMember(EmitDefaultValue = false)]
 		public Boolean CanWrite { get; private set; }
 
-		[DataMember]
 		public Object Value { get; private set; }
 
-		[DataMember]
 		public String Description { get; private set; }
 
-		[DataMember]
 		public Object DefaultValue { get; private set; }
 
-		[DataMember(EmitDefaultValue = false)]
 		public Boolean IsReadOnly { get; private set; }
 
-		[DataMember(EmitDefaultValue = false)]
 		public Boolean IsPassword { get; private set; }
 
-		[DataMember(EmitDefaultValue=false)]
 		public String[] Editors { get; private set; }
 
 		private static Boolean IsNullableTimeSpan(Type t)
