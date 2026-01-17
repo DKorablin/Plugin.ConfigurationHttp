@@ -47,6 +47,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="AlphaOmega.PushSharp.WebPush" />
+		<PackageReference Include="AlphaOmega.NamedPipesProxy" />
 		<PackageReference Include="Portable.BouncyCastle" />
 		<PackageReference Include="SAL.Flatbed">
 			<ExcludeAssets>runtime</ExcludeAssets>
@@ -77,9 +78,5 @@
 		<EmbeddedResource Include="Files\PushSubscriber.js" />
 		<EmbeddedResource Include="Files\PushWorker.js" />
 		<EmbeddedResource Include="Files\Utils.js" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\AlphaOmega.NamedPipes\AlphaOmega.NamedPipes.csproj" />
 	</ItemGroup>
 </Project>

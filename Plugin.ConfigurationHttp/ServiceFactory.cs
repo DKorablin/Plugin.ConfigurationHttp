@@ -5,8 +5,8 @@ using System.Net;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
-using AlphaOmega.NamedPipes;
-using AlphaOmega.NamedPipes.Interfaces;
+using AlphaOmega.IO;
+using AlphaOmega.IO.Interfaces;
 using Plugin.ConfigurationHttp.Ipc;
 
 namespace Plugin.ConfigurationHttp
@@ -16,13 +16,12 @@ namespace Plugin.ConfigurationHttp
 		private readonly Plugin _plugin;
 		private String _hostUrl;
 		private HttpServerFacade _controlWebHost;
-		private IRegisterServer _registerServer;
+		private IRegistryServer _registerServer;
 		private IWorkerServer _workerServer;
 		private String IpcRegistryPipeName => "Plugin.ConfigurationHttp.Registry." + Utils.GetDeterministicHashCode(this._hostUrl);
 		private static String IpcWorkerPipeName => "Plugin.ConfigurationHttp.Worker.";
 		private static String IpcWorkerPipeId => Process.GetCurrentProcess().Id.ToString();
 		private String MutexName => "Global\\Plugin.ConfigurationHttp." + Utils.GetDeterministicHashCode(this._hostUrl);
-
 
 		public Boolean IsHost => this._registerServer != null;
 		public event EventHandler<EventArgs> Connected;
@@ -137,7 +136,7 @@ namespace Plugin.ConfigurationHttp
 			if(String.IsNullOrEmpty(workerId))
 				throw new ArgumentNullException(nameof(workerId));
 
-			return this._registerServer.CreateProcessingLogicForWorker<IPluginsIpcService>(workerId);
+			return this._registerServer.CreateProcessingLogic<IPluginsIpcService>(workerId);
 		}
 
 		public void Dispose()
