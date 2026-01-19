@@ -74,25 +74,29 @@ namespace Plugin.ConfigurationHttp
 
 		private void Wrapper_ProcessRequest(HttpListenerContext context)
 		{
-			if(!this._plugin.Settings.Authenticate(context.User))
+			using(HttpListenerResponse response = context.Response)
 			{
-				using(HttpListenerResponse response = context.Response)
+				if(!this._plugin.Settings.Authenticate(context.User))
+				{
 					response.StatusCode = (Int32)HttpStatusCode.Unauthorized;
-				return;
-			}
+					return;
+				}
 
-			try
-			{
-				HttpListenerRequest request = context.Request;
-				using(HttpListenerResponse response = context.Response)
+				try
+				{
+					HttpListenerRequest request = context.Request;
 					this.SendResponse(request, response);
 
-			} catch(Exception exc)
-			{
-				if(Utils.IsFatal(exc))
-					throw;
-				else
-					Plugin.Trace.TraceData(System.Diagnostics.TraceEventType.Error, 10, exc);
+				} catch(Exception exc)
+				{
+					if(Utils.IsFatal(exc))
+						throw;
+					else
+					{
+						Plugin.Trace.TraceData(System.Diagnostics.TraceEventType.Error, 10, exc);
+						response.StatusCode = (Int32)HttpStatusCode.InternalServerError;
+					}
+				}
 			}
 		}
 

@@ -81,7 +81,7 @@ namespace Plugin.ConfigurationHttp
 								return System.Threading.Tasks.Task.CompletedTask;
 							};
 
-							_ = Task.Run(() => this._registerServer.StartAsync(token), token);
+							this._registerServer.StartAsync(token);
 						} else
 						{
 							var ipcPlugins = new PluginsIpcService(this._plugin.Host, this);

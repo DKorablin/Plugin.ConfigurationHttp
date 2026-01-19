@@ -1,6 +1,8 @@
 # Plugin.ConfigurationHttp
 [![Auto build](https://github.com/DKorablin/Plugin.ConfigurationHttp/actions/workflows/release.yml/badge.svg)](https://github.com/DKorablin/Plugin.ConfigurationHttp/releases/latest)
 
+[![UI Screenshot](.github/assets/UI-1-200.png)](.github/assets/UI-1.png)
+
 Lightweight configuration Web UI and IPC coordination plugin for SAL host applications (.NET Framework 4.8 / .NET 8).
 
 ## Overview
@@ -91,6 +93,42 @@ Packaging script (Build-ReleasePackage.ps1):
 * Limit Users[] and avoid Anonymous where sensitive configuration exists.
 * Protect web‑push VAPID keys; stored in settings (trimmed on assignment).
 * Named pipes are local only; still validate process IDs if adding privileged operations.
+
+## Logic Diagram
+```mermaid
+graph TD
+	subgraph Process Startup
+		A[Host App Starts] --> B{Try Acquire Singleton Mutex};
+	end
+
+	subgraph Control Host Path
+		B -- Yes --> C[Becomes Control Host];
+		C --> D[Starts HTTP Server e.g., :8180];
+		C --> E[Starts Named Pipe IPC Server];
+	end
+
+	subgraph Worker Process Path
+		B -- No --> F[Becomes Worker Process];
+		F --> G[Connects to Control Host via Named Pipe];
+	end
+
+	subgraph User Interaction
+		H[Browser/User] <--> D;
+		D --> I[PluginsController];
+	end
+
+	subgraph Data Flow
+		I --> J{Enumerates Plugins};
+		J -- Local Plugins --> K[Reads Local Plugin Info/Settings];
+		J -- Remote Plugins --> E;
+		E <--> G;
+		G --> L[Reads Worker's Plugin Info/Settings];
+		L --> G --> E --> J;
+		K --> M[Returns Combined DTO];
+		J --> M;
+		M --> I --> D --> H;
+	end
+```
 
 ---
 For additional frameworks or custom build targets extend the release script and workflows accordingly.

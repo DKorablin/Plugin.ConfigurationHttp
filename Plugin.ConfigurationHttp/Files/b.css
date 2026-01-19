@@ -12,7 +12,7 @@
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
   box-shadow: 4px 6px 8px rgba(0, 0, 0, 0.3);
-  width: 245px;
+  width: 350px;
   transition: all 0.4s ease-in-out;
   cursor: pointer;
 }
@@ -20,7 +20,7 @@
   .master-message { width: 65%; }
 }
 .master-message li { transition: all 0.3s ease;list-style: none;margin: 0;padding:0; }
-.master-message.rolled { right: -235px; }
+.master-message.rolled { right: -260px; }
 @media only screen and (max-width: 850px) {
   .master-message.rolled { right: -100%; }
 }
