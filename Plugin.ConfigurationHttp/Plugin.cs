@@ -8,7 +8,6 @@ namespace Plugin.ConfigurationHttp
 {
 	public class Plugin : IPlugin, IPluginSettings<PluginSettings>
 	{
-		private static TraceSource _trace;
 		private ServiceFactory _server;
 		internal static PluginSettings _settings;
 		private readonly CancellationTokenSource _serverTokenSource = new CancellationTokenSource();
@@ -16,7 +15,7 @@ namespace Plugin.ConfigurationHttp
 		internal IHost Host { get; }
 		internal static IHost SHost { get; private set; }
 
-		internal static TraceSource Trace => Plugin._trace ?? (Plugin._trace = Plugin.CreateTraceSource<Plugin>());
+		internal static ITraceSource Trace { get; private set;  }
 
 		/// <summary>Settings for interaction from the host</summary>
 		Object IPluginSettings.Settings => this.Settings;
@@ -35,8 +34,11 @@ namespace Plugin.ConfigurationHttp
 			}
 		}
 
-		public Plugin(IHost host)
-			=> Plugin.SHost = this.Host = host ?? throw new ArgumentNullException(nameof(host));
+		public Plugin(IHost host, ITraceSource trace)
+		{
+			Plugin.SHost = this.Host = host ?? throw new ArgumentNullException(nameof(host));
+			Trace = trace ?? throw new ArgumentNullException(nameof(trace));
+		}
 
 		Boolean IPlugin.OnConnection(ConnectMode mode)
 		{
@@ -58,15 +60,6 @@ namespace Plugin.ConfigurationHttp
 				this._server = null;
 			}
 			return true;
-		}
-
-		private static TraceSource CreateTraceSource<T>(String name = null) where T : IPlugin
-		{
-			TraceSource result = new TraceSource(typeof(T).Assembly.GetName().Name + name);
-			result.Switch.Level = SourceLevels.All;
-			result.Listeners.Remove("Default");
-			result.Listeners.AddRange(System.Diagnostics.Trace.Listeners);
-			return result;
 		}
 	}
 }
